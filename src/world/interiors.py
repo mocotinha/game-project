@@ -12,6 +12,7 @@ class InteriorItem:
     y: float
     kind: str
     text: str
+    grants: str = ""  # prova concedida ao ler (ex.: "saude_bairro:lei")
 
 
 @dataclass
@@ -51,7 +52,8 @@ def build_interiors() -> dict[str, Interior]:
             ],
             items=[
                 InteriorItem("Livro de Leis Municipais", 220, 300, "book",
-                             "Leis municipais valem so na cidade. O vereador as propoe; o prefeito as executa."),
+                             "LEI ORGANICA (resumo): a saude basica e servico do municipio. O vereador propoe leis e fiscaliza; o prefeito executa as obras e servicos.",
+                             grants="saude_bairro:lei"),
                 InteriorItem("Mural de Propostas", 430, 300, "board",
                              "Propostas de lei ficam expostas para a populacao acompanhar e opinar."),
             ],
@@ -72,7 +74,8 @@ def build_interiors() -> dict[str, Interior]:
             ],
             items=[
                 InteriorItem("Orcamento Municipal", 220, 300, "book",
-                             "O orcamento define quanto sera gasto em cada area, sempre com prestacao de contas."),
+                             "LEI ORCAMENTARIA (resumo): o gasto publico segue um orcamento aprovado por lei, com prioridades, metas e prestacao de contas a populacao.",
+                             grants="orcamento_cidade:lei"),
                 InteriorItem("Painel de Servicos", 430, 300, "board",
                              "Saude, educacao e transporte municipais sao coordenados a partir daqui."),
             ],
@@ -115,7 +118,8 @@ def build_interiors() -> dict[str, Interior]:
             ],
             items=[
                 InteriorItem("Constituicao Estadual", 220, 300, "book",
-                             "A constituicao estadual organiza o estado, respeitando a Constituicao Federal."),
+                             "CONSTITUICAO ESTADUAL (resumo): o estado responde por servicos regionais, como hospitais de referencia que atendem varios municipios, respeitando a Constituicao Federal.",
+                             grants="hospital_regional:lei"),
                 InteriorItem("Mapa Regional", 430, 300, "board",
                              "Hospitais de referencia atendem varios municipios e sao responsabilidade estadual."),
             ],
@@ -136,7 +140,8 @@ def build_interiors() -> dict[str, Interior]:
             ],
             items=[
                 InteriorItem("Mapa de Rodovias", 220, 300, "book",
-                             "Rodovias estaduais sao do estado; rodovias federais sao da Uniao."),
+                             "CLASSIFICACAO DAS RODOVIAS: rodovias estaduais (que ligam cidades do estado) sao do governo estadual; rodovias federais sao da Uniao.",
+                             grants="rodovia_estadual:lei"),
                 InteriorItem("Plano de Governo", 430, 300, "board",
                              "O governador executa politicas estaduais dentro do orcamento aprovado."),
             ],
@@ -157,7 +162,8 @@ def build_interiors() -> dict[str, Interior]:
             ],
             items=[
                 InteriorItem("Regimento do Congresso", 220, 300, "book",
-                             "Uma lei federal precisa passar pela Camara dos Deputados e pelo Senado."),
+                             "PROCESSO LEGISLATIVO (resumo): uma lei federal precisa ser aprovada pelas duas casas do Congresso Nacional: a Camara dos Deputados e o Senado.",
+                             grants="lei_federal:lei"),
                 InteriorItem("Painel de Votacoes", 430, 300, "board",
                              "A Camara representa o povo; o Senado representa os estados."),
             ],
@@ -178,7 +184,8 @@ def build_interiors() -> dict[str, Interior]:
             ],
             items=[
                 InteriorItem("Constituicao Federal", 220, 300, "book",
-                             "A Constituicao Federal e a lei maior; todas as outras leis a respeitam."),
+                             "CONSTITUICAO FEDERAL (resumo): e a lei maior do pais. O presidente executa politicas nacionais dentro das leis e do orcamento aprovados pelo Congresso.",
+                             grants="politica_nacional:lei"),
                 InteriorItem("Agenda Nacional", 430, 300, "board",
                              "O presidente executa politicas nacionais, sempre dentro da lei e do orcamento."),
             ],

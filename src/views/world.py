@@ -9,6 +9,8 @@ import arcade
 from src import assets, citytiles, config, save_manager, ui
 from src.audio import audio
 from src.content.missions import MISSIONS, MISSIONS_BY_ID, STORY, Mission, next_mission
+from src.content.problems import PROBLEMS_BY_MISSION, Problem
+from src.content.sidequests import SIDEQUESTS, SIDEQUESTS_BY_GIVER, SIDEQUESTS_BY_MISSION
 from src.world import NPC, Building, Prop, build_city
 from src.world.interiors import Interior, InteriorItem, build_interiors
 
@@ -26,9 +28,8 @@ BUILDING_ROOFS = ["tan", "brick", "white", "grey", "tan", "grey", "white"]
 # Props renderizados com tiles do Roguelike Modern City (billboards top-down).
 CITY_PROP_TILES = {
     "tree": 438, "bush": 441, "bench": 504, "citybench": 504,
-    "trashcan": 499, "hydrant": 707, "mailbox": 482,
-    "cone": 717, "barrel": 498,
-    "stall_green": 905, "stall_orange": 941,
+    "trashcan": 499, "mailbox": 482, "barrel": 498,
+    "stall_green": 504, "stall_orange": 508,
 }
 # Veiculos do Pixel Vehicle Pack (billboards laterais).
 VEHICLES = {
@@ -38,7 +39,8 @@ VEHICLES = {
 }
 # Mobiliario do Pixel Vehicle Pack.
 PACK_PROPS = {"trafficlight": "light_double", "streetlamp": "light", "lamp": "light", "roadsign": "sign_street", "barrier": "barrier"}
-FEMALE_NPCS = {"Dona Alzira", "Professora Ines", "Gari Rita", "Corredora Bia"}
+FEMALE_NPCS = {"Dona Alzira", "Professora Ines", "Gari Rita", "Corredora Bia",
+               "Dona Vera", "Motorista Cida", "Ativista Rosa", "Servidora Dinah", "Cidada Marli"}
 # Perambulacao dos NPCs: area de ~9 m2 ao redor do ponto de origem.
 NPC_WANDER_RADIUS = 46.0
 NPC_SPEED = 42.0
@@ -184,6 +186,37 @@ class WorldView(arcade.View):
         self.int_npc_sprites: list[tuple[arcade.Sprite, NPC]] = []
         self.world_camera.position = (self.player_x, self.player_y)
 
+        self.problem_sprites: dict[str, arcade.Sprite] = {}
+        for problem in self.city.problems:
+            sprite = arcade.Sprite(assets.vehicle_prop_texture("sign_red"), scale=PACK_PROP_SCALE)
+            sprite.center_x = problem.x
+            sprite.center_y = problem.y + sprite.height / 2
+            self.problem_sprites[problem.id] = sprite
+
+    # ---------- investigacao: provas, side quests ----------
+    def _evidence(self) -> list:
+        return self.state.setdefault("evidence", [])
+
+    def _has_ev(self, eid: str) -> bool:
+        return eid in self._evidence()
+
+    def _grant_ev(self, eid: str) -> bool:
+        ev = self._evidence()
+        if eid not in ev:
+            ev.append(eid)
+            self._persist()
+            return True
+        return False
+
+    def _sidequests(self) -> dict:
+        return self.state.setdefault("sidequests", {})
+
+    def _mission_ready(self, mission: Mission) -> bool:
+        return all(self._has_ev(eid) for eid in mission.evidence)
+
+    def _problem_solved(self, problem: Problem) -> bool:
+        return problem.mission_id in self.state.get("completed_missions", [])
+
     # ---------- chao em tiles (top-down) ----------
     def _ground_kind(self, cx: float, cy: float) -> str:
         on_v = any(vx <= cx <= vx + ROAD_W for vx in ROAD_X)
@@ -234,7 +267,13 @@ class WorldView(arcade.View):
     def _gender_for(self, name: str | None) -> str:
         if name is None:
             return self.player_gender
+        if name.startswith("Manifestante"):
+            return "woman" if int(name.split()[-1]) % 2 == 0 else "man"
         return "woman" if name in FEMALE_NPCS else "man"
+
+    def _npc_visible(self, npc: NPC) -> bool:
+        """Manifestantes somem quando a missao correspondente e concluida."""
+        return not (npc.protest and npc.protest in self.state.get("completed_missions", []))
 
     def _make_actor(self, name: str | None) -> arcade.Sprite:
         frames = assets.person_frames(self._gender_for(name))
@@ -292,7 +331,10 @@ class WorldView(arcade.View):
 
     def _draw_city(self) -> None:
         self.ground.draw(pixelated=True)
+        building_regions = {b.key for b in self.city.buildings if b.key}
         for region in self.city.regions:
+            if region.key in building_regions:
+                continue  # o nome do predio ja identifica a regiao
             ui.name_tag(region.label, region.x + region.width / 2, region.y + region.height - 26, (247, 238, 200), 15)
 
         self._sync_city_actors()
@@ -300,11 +342,16 @@ class WorldView(arcade.View):
         for b in self.city.buildings:
             drawables.append((b.y + b.height, 0, b))
         for sprite, npc in self.npc_sprites:
-            drawables.append((npc.y, 1, sprite))
+            if self._npc_visible(npc):
+                drawables.append((npc.y, 1, sprite))
         for sprite, prop in self.prop_sprites:
             drawables.append((prop.y, 1, sprite))
         for prop in self.vector_props:
             drawables.append((prop.y, 2, prop))
+        for problem in self.city.problems:
+            sprite = self.problem_sprites[problem.id]
+            sprite.texture = assets.vehicle_prop_texture("sign_blue" if self._problem_solved(problem) else "sign_red")
+            drawables.append((problem.y, 1, sprite))
         drawables.append((self.player_y, 1, self.player_sprite))
         drawables.sort(key=lambda d: d[0], reverse=True)
         for _, kind, obj in drawables:
@@ -315,11 +362,19 @@ class WorldView(arcade.View):
             else:
                 self._draw_vector_prop(obj)
 
-        for _, npc in self.npc_sprites:
-            if self._dist(npc.x, npc.y) < 210:
-                ui.name_tag(npc.name, npc.x, npc.y + 72, (255, 234, 150), 12)
-                ui.name_tag(npc.role, npc.x, npc.y + 58, (208, 226, 222), 10)
+        near = min((npc for _, npc in self.npc_sprites if self._dist(npc.x, npc.y) < 150 and self._npc_visible(npc)),
+                   key=lambda n: self._dist(n.x, n.y), default=None)
+        if near is not None:
+            ui.name_tag(near.name, near.x, near.y + 72, (255, 234, 150), 12)
+            ui.name_tag(near.role, near.x, near.y + 58, (208, 226, 222), 10)
         ui.name_tag(self.state.get("player_name", "Joana").upper(), self.player_x, self.player_y + 72, config.COLOR_HIGHLIGHT, 12)
+
+        for problem in self.city.problems:
+            solved = self._problem_solved(problem)
+            color = (150, 230, 160) if solved else (255, 176, 96)
+            bob = math.sin(self.clock * 4) * 4
+            ui.name_tag(problem.title, problem.x, problem.y + 66, color, 11)
+            ui.label("OK" if solved else "!", problem.x, problem.y + 82 + bob, color, 16, anchor_x="center", bold=True)
 
         self._draw_objective_beacon()
 
@@ -327,16 +382,34 @@ class WorldView(arcade.View):
         if target is not None and self.mode == Mode.EXPLORE:
             ui.label(target[2], target[0], target[1] + 74, config.COLOR_ACCENT, 12, anchor_x="center", bold=True)
 
-    def _draw_objective_beacon(self) -> None:
+    def _objective_target(self) -> tuple[float, float, str] | None:
+        mission = next_mission(self.state.get("completed_missions", []))
+        if mission is None:
+            return None
+        prob = PROBLEMS_BY_MISSION.get(mission.id)
+        if prob is not None and not self._has_ev(f"{mission.id}:problema"):
+            return (prob.x, prob.y, "Investigue: " + prob.title)
+        sq = SIDEQUESTS_BY_MISSION.get(mission.id)
+        if sq is not None and not self._has_ev(f"{mission.id}:testemunho"):
+            giver = next((n for n in self.city.npcs if n.name == sq.giver), None)
+            if giver is not None:
+                return (giver.x, giver.y, "Fale com " + sq.giver)
         building = self._target_building()
-        if building is None:
+        if building is not None and not self._has_ev(f"{mission.id}:lei"):
+            return (building.door_x, building.door_y, "Leia a lei em " + building.title)
+        if building is not None:
+            return (building.door_x, building.door_y, "Procure " + mission.giver)
+        return None
+
+    def _draw_objective_beacon(self) -> None:
+        target = self._objective_target()
+        if target is None:
             return
+        tx, ty, _ = target
         bob = math.sin(self.clock * 4) * 6
-        bx = building.door_x
-        top = building.y + building.height + 40 + bob
-        arcade.draw_triangle_filled(bx - 15, top + 20, bx + 15, top + 20, bx, top, (255, 140, 90))
-        arcade.draw_triangle_outline(bx - 15, top + 20, bx + 15, top + 20, bx, top, (255, 200, 150), 2)
-        ui.label("OBJETIVO", bx, top + 26, (255, 180, 130), 11, anchor_x="center", bold=True)
+        top = ty + 92 + bob
+        arcade.draw_triangle_filled(tx - 15, top + 20, tx + 15, top + 20, tx, top, (255, 140, 90))
+        arcade.draw_triangle_outline(tx - 15, top + 20, tx + 15, top + 20, tx, top, (255, 200, 150), 2)
 
     def _draw_crosswalks(self) -> None:
         for cw in self.city.crosswalks:
@@ -473,11 +546,8 @@ class WorldView(arcade.View):
         arcade.draw_lbwh_rectangle_filled(0, config.SCREEN_HEIGHT - 54, config.SCREEN_WIDTH, 54, (12, 21, 32))
         title = self.interior.title if self.location != "city" and self.interior else self.region_name
         ui.label(f"AURORA  |  {title}", 20, config.SCREEN_HEIGHT - 38, config.COLOR_ACCENT, 16, bold=True)
-        mission = next_mission(self.state.get("completed_missions", []))
-        if mission is None:
-            objective = "Todas as missoes concluidas!"
-        else:
-            objective = f"Objetivo: {mission.title} - procure {mission.giver}"
+        target = self._objective_target()
+        objective = "Objetivo: " + target[2] if target is not None else "Todas as missoes concluidas!"
         ui.label(objective, config.SCREEN_WIDTH / 2, 16, config.COLOR_TEXT, 13, anchor_x="center")
         ui.label("J: diario", 20, 16, config.COLOR_TEXT_SOFT, 12)
         self._draw_mission_indicator()
@@ -507,13 +577,19 @@ class WorldView(arcade.View):
         if mission is None:
             ui.label("Todas as missoes concluidas!", x + 14, y + 66, config.COLOR_OK, 14, width=300, multiline=True)
         else:
-            ui.label(mission.title, x + 14, y + 68, config.COLOR_TEXT, 15, bold=True, width=300, multiline=True)
-            ui.label(f"Procure: {mission.giver}", x + 14, y + 48, config.COLOR_TEXT_SOFT, 12)
-            ui.label(f"Local: {self._region_label(mission.region_key)}", x + 14, y + 32, config.COLOR_TEXT_SOFT, 12)
+            ui.label(mission.title, x + 14, y + 76, config.COLOR_TEXT, 14, bold=True, width=300, multiline=True)
+            target = self._objective_target()
+            if target is not None:
+                ui.label(target[2], x + 14, y + 54, config.COLOR_ACCENT, 12, width=300, multiline=True)
+            got = sum(1 for e in mission.evidence if self._has_ev(e))
+            ui.label(f"Provas: {got}/{len(mission.evidence)}   Local: {self._region_label(mission.region_key)}", x + 14, y + 34, config.COLOR_TEXT_SOFT, 12, width=300, multiline=True)
         # Estrelas de cidadania: uma por missao concluida.
         total = len(MISSIONS)
         for i in range(total):
             self._draw_star(x + 24 + i * 30, y + 14, 10, i < len(completed))
+        extra = self.state.get("extra_stars", 0)
+        if extra:
+            ui.label(f"+{extra}", x + 24 + total * 30, y + 8, config.COLOR_ACCENT, 13, bold=True)
 
     def _draw_minimap(self) -> None:
         mx = config.SCREEN_WIDTH - MM_W - 16
@@ -522,7 +598,9 @@ class WorldView(arcade.View):
         sy = MM_H / config.MAP_HEIGHT
         arcade.draw_lbwh_rectangle_filled(mx - 6, my - 6, MM_W + 12, MM_H + 26, (10, 18, 27))
         arcade.draw_lbwh_rectangle_outline(mx - 6, my - 6, MM_W + 12, MM_H + 26, config.COLOR_ACCENT, 1)
-        ui.label("MINIMAPA", mx, my + MM_H + 4, config.COLOR_TEXT_SOFT, 10, bold=True)
+        ui.label("problema", mx + 2, my + MM_H + 5, (255, 176, 96), 9, bold=True)
+        ui.label("morador", mx + 90, my + MM_H + 5, (120, 220, 255), 9, bold=True)
+        ui.label("cargo", mx + 176, my + MM_H + 5, (255, 132, 110), 9, bold=True)
         arcade.draw_lbwh_rectangle_filled(mx, my, MM_W, MM_H, (34, 66, 58))
         for region in self.city.regions:
             arcade.draw_lbwh_rectangle_filled(mx + region.x * sx, my + region.y * sy, region.width * sx, region.height * sy, region.floor)
@@ -532,14 +610,24 @@ class WorldView(arcade.View):
         px, py = self.world_camera.position
         arcade.draw_lbwh_rectangle_outline(mx + (px - config.SCREEN_WIDTH / 2) * sx, my + (py - config.SCREEN_HEIGHT / 2) * sy, config.SCREEN_WIDTH * sx, config.SCREEN_HEIGHT * sy, (255, 255, 255), 1)
         arcade.draw_circle_filled(mx + self.player_x * sx, my + self.player_y * sy, 4, config.COLOR_HIGHLIGHT)
-        target = self._target_building()
-        if target is not None:
-            tx = mx + (target.x + target.width / 2) * sx
-            ty = my + (target.y + target.height / 2) * sy
-            pulse = 4 + 3 * (math.sin(self.clock * 5) + 1)
-            arcade.draw_circle_outline(tx, ty, pulse, (255, 120, 90), 2)
-            arcade.draw_circle_filled(tx, ty, 3, (255, 150, 100))
-            ui.label("objetivo", mx + MM_W, my + MM_H + 4, (255, 150, 110), 10, anchor_x="right", bold=True)
+        mission = next_mission(self.state.get("completed_missions", []))
+        if mission is not None:
+            prob = PROBLEMS_BY_MISSION.get(mission.id)
+            if prob is not None and not self._has_ev(f"{mission.id}:problema"):
+                self._minimap_marker(mx + prob.x * sx, my + prob.y * sy, (255, 176, 96))
+            sq = SIDEQUESTS_BY_MISSION.get(mission.id)
+            if sq is not None and not self._has_ev(f"{mission.id}:testemunho"):
+                giver = next((n for n in self.city.npcs if n.name == sq.giver), None)
+                if giver is not None:
+                    self._minimap_marker(mx + giver.x * sx, my + giver.y * sy, (120, 220, 255))
+            target = self._target_building()
+            if target is not None:
+                self._minimap_marker(mx + (target.x + target.width / 2) * sx, my + (target.y + target.height / 2) * sy, (255, 132, 110))
+
+    def _minimap_marker(self, x: float, y: float, color: tuple[int, int, int]) -> None:
+        pulse = 3 + 2 * (math.sin(self.clock * 5) + 1)
+        arcade.draw_circle_outline(x, y, pulse, color, 2)
+        arcade.draw_circle_filled(x, y, 2.5, color)
 
     def _panel(self, height: float) -> None:
         ui.panel(60, 90, config.SCREEN_WIDTH - 120, height)
@@ -561,18 +649,21 @@ class WorldView(arcade.View):
         mission = self.active_mission
         if mission is None:
             return
-        self._panel(360)
-        ui.label(f"MISSAO  |  {mission.title}", 95, 400, config.COLOR_ACCENT, 20, bold=True)
-        ui.label(mission.question, 95, 360, config.COLOR_TEXT, 15, width=900, multiline=True)
+        self._panel(430)
+        ui.label(f"MISSAO  |  {mission.title}", 95, 480, config.COLOR_ACCENT, 20, bold=True)
+        ui.label(mission.question, 95, 448, config.COLOR_TEXT, 15, width=900, multiline=True)
+        ui.label("Provas reunidas:", 95, 410, config.COLOR_OK, 13, bold=True)
+        for i, (_, hint) in enumerate(mission.hints):
+            ui.label("- " + hint, 112, 390 - i * 20, config.COLOR_TEXT_SOFT, 12, width=880, multiline=True)
         for i, option in enumerate(mission.options):
-            by = 300 - i * 54
+            by = 300 - i * 50
             state = "selected" if self.mission_answer == option.letter else "normal"
-            ui.panel(95, by, config.SCREEN_WIDTH - 190, 46, kind=state)
+            ui.panel(95, by, config.SCREEN_WIDTH - 190, 44, kind=state)
             tcolor = (60, 52, 20) if state == "selected" else (255, 255, 255)
-            ui.label(f"[{option.letter}]  {option.text}", 118, by + 27, tcolor, 14, width=config.SCREEN_WIDTH - 250, multiline=True)
+            ui.label(f"[{option.letter}]  {option.text}", 118, by + 26, tcolor, 14, width=config.SCREEN_WIDTH - 250, multiline=True)
         ui.label("Pressione A, B ou C", 95, 108, config.COLOR_TEXT_SOFT, 12)
         if self.feedback:
-            ui.label(self.feedback, 95, 140, config.COLOR_OK, 13, width=880, multiline=True)
+            ui.label(self.feedback, 95, 145, config.COLOR_OK, 13, width=880, multiline=True)
 
     def _draw_complete(self) -> None:
         mission = self.active_mission
@@ -671,9 +762,9 @@ class WorldView(arcade.View):
         self.player_y = min(RY + RH - 150, max(RY + 44, self.player_y + dy))
 
     def _blocked(self, x: float, y: float, dx: float, dy: float) -> bool:
-        # Colisao apenas na base do predio; o corpo alto e visual e o jogador passa por tras.
+        # Colisao com todo o footprint do predio (visao top-down); a porta fica ao sul (livre).
         for b in self.city.buildings:
-            if b.x - 12 < x < b.x + b.width + 12 and b.y - 2 < y < b.y + b.foot_h:
+            if b.x - 6 < x < b.x + b.width + 6 and b.y - 2 < y < b.y + b.height + 6:
                 return True
         for prop in self.city.props:
             if not prop.solid:
@@ -773,9 +864,15 @@ class WorldView(arcade.View):
             if d < 100 and d < best_d:
                 best, best_d = (b.door_x, b.door_y + 20, "E entrar"), d
         for n in self.city.npcs:
+            if not self._npc_visible(n):
+                continue
             d = self._dist(n.x, n.y)
             if d < 120 and d < best_d:
                 best, best_d = (n.x, n.y, "E conversar"), d
+        for p in self.city.problems:
+            d = self._dist(p.x, p.y)
+            if d < 90 and d < best_d:
+                best, best_d = (p.x, p.y, "E investigar"), d
         return best
 
     def _interior_target(self) -> tuple[float, float, str] | None:
@@ -804,13 +901,26 @@ class WorldView(arcade.View):
             self._interact_interior()
 
     def _interact_city(self) -> None:
-        door = min((b for b in self.city.buildings if b.key and self._dist(b.door_x, b.door_y) < 100),
-                   key=lambda b: self._dist(b.door_x, b.door_y), default=None)
-        npc = min((n for n in self.city.npcs if self._dist(n.x, n.y) < 120), key=lambda n: self._dist(n.x, n.y), default=None)
-        if door is not None and (npc is None or self._dist(door.door_x, door.door_y) <= self._dist(npc.x, npc.y)):
-            self._enter_interior(door.key)
-        elif npc is not None:
-            self._talk_to(npc)
+        opts: list[tuple[float, str, object]] = []
+        for b in self.city.buildings:
+            if b.key and self._dist(b.door_x, b.door_y) < 100:
+                opts.append((self._dist(b.door_x, b.door_y), "door", b))
+        for n in self.city.npcs:
+            if self._npc_visible(n) and self._dist(n.x, n.y) < 120:
+                opts.append((self._dist(n.x, n.y), "npc", n))
+        for p in self.city.problems:
+            if self._dist(p.x, p.y) < 90:
+                opts.append((self._dist(p.x, p.y), "problem", p))
+        if not opts:
+            return
+        opts.sort(key=lambda t: t[0])
+        _, kind, obj = opts[0]
+        if kind == "door":
+            self._enter_interior(obj.key)
+        elif kind == "npc":
+            self._talk_to(obj)
+        else:
+            self._investigate(obj)
 
     def _interact_interior(self) -> None:
         interior = self.interior
@@ -827,10 +937,11 @@ class WorldView(arcade.View):
         if item is not None:
             audio.play_sfx("confirm")
             self.dialogue_speaker = item.name
-            self.dialogue_lines = [item.text]
-            self.dialogue_index = 0
+            lines = [item.text]
+            if item.grants and self._grant_ev(item.grants):
+                lines.append("Prova registrada: documento lido.")
             self.active_mission = None
-            self.mode = Mode.DIALOGUE
+            self._begin_dialogue(lines)
 
     def _enter_interior(self, key: str) -> None:
         interior = self.interiors.get(key)
@@ -856,27 +967,108 @@ class WorldView(arcade.View):
 
     def _talk_to(self, npc: NPC) -> None:
         self.dialogue_speaker = f"{npc.name}  ({npc.role})"
-        completed = self.state.get("completed_missions", [])
-        mission = MISSIONS_BY_ID.get(npc.mission) if npc.mission else None
-        upcoming = next_mission(completed)
-        if mission is None:
-            lines = [npc.greeting]
-            if npc.extra_line:
-                lines.append(npc.extra_line)
-            self.active_mission = None
-        elif mission.id in completed:
-            self.active_mission = None
-            lines = [npc.greeting, mission.lesson]
-        elif upcoming is not None and mission.id == upcoming.id:
-            self.active_mission = mission
-            lines = list(mission.intro)
-        else:
-            self.active_mission = None
-            hint = upcoming.giver if upcoming else "o cargo anterior"
-            lines = [npc.greeting, f"Antes disso, conclua a missao anterior com {hint}."]
+        if npc.mission:
+            self._talk_mission(npc)
+            return
+        sq = SIDEQUESTS_BY_GIVER.get(npc.name)
+        if sq is not None:
+            self._talk_sidequest_giver(npc, sq)
+            return
+        target_sq = self._active_target_quest(npc.name)
+        if target_sq is not None:
+            self._talk_sidequest_target(npc, target_sq)
+            return
+        lines = [npc.greeting]
+        if npc.extra_line:
+            lines.append(npc.extra_line)
+        self.active_mission = None
+        self._begin_dialogue(lines)
+
+    def _begin_dialogue(self, lines: list[str]) -> None:
         self.dialogue_lines = lines
         self.dialogue_index = 0
         self.mode = Mode.DIALOGUE
+
+    def _talk_mission(self, npc: NPC) -> None:
+        completed = self.state.get("completed_missions", [])
+        mission = MISSIONS_BY_ID.get(npc.mission)
+        upcoming = next_mission(completed)
+        if mission is None:
+            self.active_mission = None
+            self._begin_dialogue([npc.greeting])
+        elif mission.id in completed:
+            self.active_mission = None
+            self._begin_dialogue([npc.greeting, mission.lesson])
+        elif upcoming is not None and mission.id == upcoming.id:
+            if self._mission_ready(mission):
+                self.active_mission = mission
+                self._begin_dialogue(list(mission.intro))
+            else:
+                self.active_mission = None
+                self._begin_dialogue([npc.greeting] + self._evidence_checklist(mission))
+        else:
+            self.active_mission = None
+            hint = upcoming.giver if upcoming else "o cargo anterior"
+            self._begin_dialogue([npc.greeting, f"Antes disso, conclua a missao anterior com {hint}."])
+
+    def _evidence_checklist(self, mission: Mission) -> list[str]:
+        labels = {"problema": "Investigar o problema no mapa",
+                  "testemunho": "Ouvir os moradores (side quest)",
+                  "lei": "Ler a lei relacionada (dentro do predio)"}
+        lines = ["Antes de decidir, reuna as provas do caso:"]
+        for eid in mission.evidence:
+            key = eid.split(":", 1)[1]
+            mark = "[X]" if self._has_ev(eid) else "[  ]"
+            lines.append(f"{mark} {labels.get(key, key)}")
+        return lines
+
+    def _active_target_quest(self, name: str):
+        for sq in SIDEQUESTS:
+            if name in sq.targets:
+                st = self._sidequests().get(sq.id)
+                if st is not None and not st.get("done"):
+                    return sq
+        return None
+
+    def _talk_sidequest_giver(self, npc: NPC, sq) -> None:
+        sqs = self._sidequests()
+        st = sqs.get(sq.id)
+        self.active_mission = None
+        if st is None:
+            sqs[sq.id] = {"talked": [], "done": False}
+            self._persist()
+            self._begin_dialogue([npc.greeting, sq.intro, "Objetivo: " + sq.objective])
+        elif st.get("done"):
+            self._begin_dialogue([sq.done_line])
+        else:
+            remaining = [t for t in sq.targets if t not in st.get("talked", [])]
+            self._begin_dialogue([sq.intro, "Ainda falta ouvir: " + (", ".join(remaining) if remaining else "ninguem")])
+
+    def _talk_sidequest_target(self, npc: NPC, sq) -> None:
+        st = self._sidequests()[sq.id]
+        self.active_mission = None
+        talked = st.setdefault("talked", [])
+        if npc.name not in talked:
+            talked.append(npc.name)
+        lines = [sq.testimonies.get(npc.name, npc.greeting)]
+        if all(t in talked for t in sq.targets) and not st.get("done"):
+            st["done"] = True
+            self._grant_ev(sq.grants)
+            self.state["extra_stars"] = self.state.get("extra_stars", 0) + 1
+            lines.append("Voce reuniu o testemunho dos moradores. (+1 estrela de cidadania)")
+        self._persist()
+        self._begin_dialogue(lines)
+
+    def _investigate(self, problem: Problem) -> None:
+        self.active_mission = None
+        self.dialogue_speaker = problem.title
+        if self._problem_solved(problem):
+            self._begin_dialogue([problem.desc_solved])
+            return
+        lines = [problem.desc_unsolved]
+        if self._grant_ev(f"{problem.mission_id}:problema"):
+            lines.append("Prova registrada: voce investigou o problema.")
+        self._begin_dialogue(lines)
 
     def _finish_dialogue(self) -> None:
         if self.active_mission is not None:

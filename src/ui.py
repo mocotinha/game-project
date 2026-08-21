@@ -30,6 +30,9 @@ def label(
     align: str = "left",
 ) -> None:
     """Desenha texto reutilizando objetos arcade.Text (evita o custo de draw_text)."""
+    # Espaco final evita um bug do pyglet que gruda/afasta a ultima palavra em texto multilinha.
+    if multiline:
+        text = text + " "
     key = (text, round(x), round(y), font_size, anchor_x, bold, width, multiline, align, tuple(color))
     obj = _cache.get(key)
     if obj is None:

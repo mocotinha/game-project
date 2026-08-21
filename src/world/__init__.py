@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from src.content.problems import PROBLEMS, Problem
+
 BUILDING_FOOT_H = 46  # altura da base solida do predio (o resto e apenas visual)
 
 WHITE = (255, 255, 255)
@@ -43,6 +45,7 @@ class NPC:
     mission: str | None = None
     extra_line: str = ""
     tint: tuple[int, int, int] = WHITE
+    protest: str = ""  # se preenchido, e manifestante da missao (some quando concluida)
 
 
 @dataclass
@@ -83,6 +86,7 @@ class City:
     props: list[Prop] = field(default_factory=list)
     regions: list[Region] = field(default_factory=list)
     crosswalks: list[Crosswalk] = field(default_factory=list)
+    problems: list[Problem] = field(default_factory=list)
 
 
 def _crosswalks() -> list[Crosswalk]:
@@ -152,6 +156,33 @@ def build_city() -> City:
         NPC("Seu Jonas", "Jardineiro", 1560, 620, "male_adventurer",
             "Cuido das plantas do parque. Cada arvore precisa de cuidado.",
             extra_line="Servidores mantem os espacos publicos vivos.", tint=(160, 220, 150)),
+        # --- Regiao estadual (Assembleia / Governo) ---
+        NPC("Dona Vera", "Moradora", 1990, 1675, "female_person",
+            "Aqui chega gente de muitas cidades vizinhas em busca de atendimento.",
+            extra_line="Alguns problemas sao grandes demais para um municipio so.", tint=(255, 220, 210)),
+        NPC("Seu Otavio", "Visitante", 2150, 1690, "male_adventurer",
+            "Vim de uma cidade vizinha; por aqui a gente se encontra bastante.", tint=(210, 220, 240)),
+        NPC("Jovem Rui", "Estudante", 2070, 1640, "male_person",
+            "Estudo como o estado coordena servicos entre varias cidades.", tint=(200, 235, 220)),
+        NPC("Caminhoneiro Zeca", "Caminhoneiro", 2400, 1240, "male_adventurer",
+            "Rodo o estado inteiro por essas estradas. Uma interdicao atrapalha todo mundo.", tint=(235, 210, 180)),
+        NPC("Motorista Cida", "Motorista", 2520, 1620, "female_adventurer",
+            "Dirijo entre cidades todo dia; a estrada faz diferenca no meu trabalho.", tint=(255, 215, 235)),
+        NPC("Feirante Tino", "Feirante", 2700, 1620, "male_person",
+            "Levo mercadoria de uma cidade a outra. Estrada ruim e prejuizo.", tint=(200, 235, 160)),
+        # --- Regiao federal (Congresso / Planalto) ---
+        NPC("Estudante Bruno", "Estudante", 2500, 560, "male_person",
+            "Estou aprendendo como nascem as leis que valem para o pais todo.", tint=(210, 225, 255)),
+        NPC("Professor Nabuco", "Professor", 2680, 560, "male_adventurer",
+            "Certos direitos precisam ser iguais em todo o territorio nacional.", tint=(225, 220, 200)),
+        NPC("Ativista Rosa", "Ativista", 2500, 860, "female_adventurer",
+            "Recolhemos assinaturas pelo pais por uma nova lei federal.", tint=(255, 205, 225)),
+        NPC("Servidora Dinah", "Servidora", 2900, 1080, "female_person",
+            "Acompanho programas federais que precisam chegar a toda a populacao.", tint=(220, 230, 255)),
+        NPC("Analista Ivo", "Analista", 3060, 1080, "male_person",
+            "Analiso se as politicas saem do papel respeitando a lei e o orcamento.", tint=(205, 215, 245)),
+        NPC("Cidada Marli", "Cidada", 2960, 1340, "female_person",
+            "Quero ver os programas nacionais funcionando na ponta.", tint=(255, 225, 210)),
     ]
 
     props = [
@@ -189,7 +220,37 @@ def build_city() -> City:
     ]
 
     props += _street_decor()
-    return City(buildings=buildings, npcs=npcs, props=props, regions=regions, crosswalks=_crosswalks())
+    npcs += _protesters(buildings)
+    return City(buildings=buildings, npcs=npcs, props=props, regions=regions, crosswalks=_crosswalks(), problems=list(PROBLEMS))
+
+
+# Manifestacoes: por chave do predio -> (missao, palavra de ordem, cor).
+_PROTESTS = {
+    "camara": ("saude_bairro", "Saude no bairro ja!", (255, 214, 180)),
+    "prefeitura": ("orcamento_cidade", "Praca digna e orcamento claro!", (200, 230, 255)),
+    "assembleia": ("hospital_regional", "Hospital regional para todos!", (255, 210, 230)),
+    "governo": ("rodovia_estadual", "Estrada segura ja!", (210, 230, 200)),
+    "congresso": ("lei_federal", "Lei justa para o pais!", (235, 225, 190)),
+    "planalto": ("politica_nacional", "Programa nacional na pratica!", (215, 220, 255)),
+}
+_PROTEST_OFFSETS = [(-74, -44), (70, -50), (-28, -88), (44, -92), (8, -60)]
+
+
+def _protesters(buildings: list[Building]) -> list[NPC]:
+    by_key = {b.key: b for b in buildings}
+    out: list[NPC] = []
+    for key, (mission_id, chant, tint) in _PROTESTS.items():
+        b = by_key.get(key)
+        if b is None:
+            continue
+        for i, (ox, oy) in enumerate(_PROTEST_OFFSETS):
+            out.append(NPC(
+                f"Manifestante {key} {i + 1}", "Manifestante",
+                b.door_x + ox, b.y + oy, "male_person", chant,
+                extra_line="A populacao cobra quem tem o poder de decidir.",
+                protest=mission_id, tint=tint,
+            ))
+    return out
 
 
 def _street_decor() -> list[Prop]:
@@ -221,14 +282,10 @@ def _street_decor() -> list[Prop]:
         add(kind, x, y, w=70, h=32, solid=True, flip=flip)
 
     # Mobiliario urbano (nao solido, para nao travar o jogador).
-    for x, y in [(628, 1180), (1448, 1180), (2328, 1200)]:
-        add("hydrant", x, y, w=16, h=24)
     for x, y in [(742, 1000), (1560, 980), (2380, 1010)]:
         add("trashcan", x, y, w=18, h=24)
     add("mailbox", 980, 1120, w=18, h=30)
     add("mailbox", 1420, 1120, w=18, h=30)
-    for x, y in [(700, 895), (1500, 1555), (2360, 895)]:
-        add("cone", x, y, w=14, h=18)
     for x, y in [(560, 1060), (1600, 645)]:
         add("barrel", x, y, w=18, h=24)
     # Barracas de feira (toldos) nas pracas.

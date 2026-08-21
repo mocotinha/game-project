@@ -20,7 +20,7 @@ ROOF_GROUPS = {"brick": 0, "grey": 8, "white": 16, "tan": 24, "green": 32}
 # Componentes de fachada (parede frontal, na base do predio).
 WINDOW_TILE = 601
 DOOR_TILE = 621
-AWNINGS = {"brick": 941, "grey": 905, "white": 905, "tan": 941, "green": 905}
+AWNINGS = {"brick": 508, "grey": 504, "white": 504, "tan": 508, "green": 504}
 
 
 @lru_cache(maxsize=None)

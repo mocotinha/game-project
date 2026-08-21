@@ -58,6 +58,9 @@ def new_game_state(player_name: str = "Joana") -> dict[str, Any]:
         "position": {"x": 600.0, "y": 1200.0},
         "completed_missions": [],
         "learned_roles": [],
+        "evidence": [],
+        "sidequests": {},
+        "extra_stars": 0,
         "updated_at": datetime.now().isoformat(timespec="seconds"),
     }
 
@@ -92,5 +95,5 @@ def slot_summary(slot: int) -> str:
     name = state.get("player_name", "Joana")
     region = str(state.get("region", "praca_central")).replace("_", " ").title()
     missions = len(state.get("completed_missions", []))
-    updated = state.get("updated_at", "")
+    updated = str(state.get("updated_at", ""))[:16].replace("T", " ")
     return f"{name}  |  {region}  |  missoes: {missions}  |  {updated}"

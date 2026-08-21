@@ -13,6 +13,8 @@ class JournalView(arcade.View):
         self.world_view = world_view
         self.learned = list(world_view.state.get("learned_roles", []))
         self.completed = list(world_view.state.get("completed_missions", []))
+        self.extra_stars = world_view.state.get("extra_stars", 0)
+        self.sidequests = world_view.state.get("sidequests", {})
 
     def on_draw(self) -> None:
         self.clear(config.COLOR_BG)
@@ -45,8 +47,10 @@ class JournalView(arcade.View):
             else:
                 ui.label("Conclua as missoes para revelar este cargo.", x, y - 20, (110, 120, 118), 12, width=480, multiline=True)
 
-        ui.label(f"Progresso: {len(self.learned)}/{len(ROLE_ORDER)} cargos", cx, 46, config.COLOR_TEXT_SOFT, 13, anchor_x="center")
-        ui.label(f"Cidadania: {len(self.completed)}/{len(MISSIONS)} estrelas", cx, 66, config.COLOR_ACCENT, 13, anchor_x="center", bold=True)
+        sq_done = sum(1 for st in self.sidequests.values() if st.get("done"))
+        stars = len(self.completed) + self.extra_stars
+        ui.label(f"Progresso: {len(self.learned)}/{len(ROLE_ORDER)} cargos  |  Side quests: {sq_done}/{len(MISSIONS)}", cx, 46, config.COLOR_TEXT_SOFT, 13, anchor_x="center")
+        ui.label(f"Cidadania: {stars} estrelas  ({len(self.completed)} missoes + {self.extra_stars} moradores)", cx, 66, config.COLOR_ACCENT, 13, anchor_x="center", bold=True)
         ui.label("Esc ou J para voltar", cx, 24, config.COLOR_TEXT_SOFT, 12, anchor_x="center")
 
     def on_key_press(self, key: int, modifiers: int) -> None:

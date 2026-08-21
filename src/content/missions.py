@@ -24,6 +24,14 @@ class Mission:
     success: str
     roles: tuple[str, ...]
     lesson: str
+    problem_id: str = ""
+    evidence: tuple[str, ...] = ()
+    hints: tuple[tuple[str, str], ...] = ()
+
+
+def evidence_ids(mission_id: str) -> tuple[str, str, str]:
+    """Provas padrao de uma missao: problema, testemunho e lei."""
+    return (f"{mission_id}:problema", f"{mission_id}:testemunho", f"{mission_id}:lei")
 
 
 # Enredo geral do jogo, apresentado por etapa.
@@ -78,6 +86,13 @@ MISSIONS: tuple[Mission, ...] = (
         success="Isso! O prefeito administra e executa servicos municipais; a Camara legisla e fiscaliza.",
         roles=("vereador", "prefeito"),
         lesson="Servicos locais de saude basica sao responsabilidade principal do municipio.",
+        problem_id="terreno_saude",
+        evidence=("saude_bairro:problema", "saude_bairro:testemunho", "saude_bairro:lei"),
+        hints=(
+            ("saude_bairro:problema", "O terreno vazio mostra uma demanda LOCAL de saude basica."),
+            ("saude_bairro:testemunho", "Moradores relatam dificuldade de se consultar perto de casa."),
+            ("saude_bairro:lei", "Leis municipais: o vereador propoe e fiscaliza; o prefeito executa."),
+        ),
     ),
     Mission(
         id="orcamento_cidade",
@@ -100,6 +115,13 @@ MISSIONS: tuple[Mission, ...] = (
         success="Exato! O orcamento e definido em lei, com prioridades, metas e prestacao de contas.",
         roles=("prefeito",),
         lesson="O prefeito executa o orcamento aprovado pela Camara e presta contas a populacao.",
+        problem_id="praca_abandonada",
+        evidence=("orcamento_cidade:problema", "orcamento_cidade:testemunho", "orcamento_cidade:lei"),
+        hints=(
+            ("orcamento_cidade:problema", "A praca abandonada revela falta de prioridade no orcamento."),
+            ("orcamento_cidade:testemunho", "A comunidade pede manutencao e iluminacao."),
+            ("orcamento_cidade:lei", "O orcamento e aprovado por lei, com prioridades e prestacao de contas."),
+        ),
     ),
     Mission(
         id="hospital_regional",
@@ -122,6 +144,13 @@ MISSIONS: tuple[Mission, ...] = (
         success="Certo! Servicos de media e alta complexidade regional costumam ser do governo estadual.",
         roles=("deputado_estadual",),
         lesson="O estado atua onde a acao ultrapassa as fronteiras de um unico municipio.",
+        problem_id="hospital_lotado",
+        evidence=("hospital_regional:problema", "hospital_regional:testemunho", "hospital_regional:lei"),
+        hints=(
+            ("hospital_regional:problema", "O hospital atende varias cidades: e um problema REGIONAL."),
+            ("hospital_regional:testemunho", "Pacientes vem de municipios vizinhos."),
+            ("hospital_regional:lei", "Servicos regionais de media/alta complexidade sao do estado."),
+        ),
     ),
     Mission(
         id="rodovia_estadual",
@@ -144,6 +173,13 @@ MISSIONS: tuple[Mission, ...] = (
         success="Isso! Rodovias estaduais sao do governo estadual; as federais, da Uniao.",
         roles=("governador",),
         lesson="O governador executa politicas estaduais, inclusive infraestrutura do estado.",
+        problem_id="rodovia_interditada",
+        evidence=("rodovia_estadual:problema", "rodovia_estadual:testemunho", "rodovia_estadual:lei"),
+        hints=(
+            ("rodovia_estadual:problema", "A rodovia liga cidades do estado: alcance estadual."),
+            ("rodovia_estadual:testemunho", "O desvio prejudica transporte e comercio regional."),
+            ("rodovia_estadual:lei", "Rodovias estaduais sao do estado; as federais, da Uniao."),
+        ),
     ),
     Mission(
         id="lei_federal",
@@ -166,6 +202,13 @@ MISSIONS: tuple[Mission, ...] = (
         success="Perfeito! O Congresso, formado por Camara e Senado, cria as leis federais.",
         roles=("deputado_federal", "senador"),
         lesson="Leis federais exigem aprovacao das duas casas do Congresso Nacional.",
+        problem_id="mural_assinaturas",
+        evidence=("lei_federal:problema", "lei_federal:testemunho", "lei_federal:lei"),
+        hints=(
+            ("lei_federal:problema", "O pedido vale para o pais todo: e assunto NACIONAL."),
+            ("lei_federal:testemunho", "Direitos iguais em todo o territorio viram lei federal."),
+            ("lei_federal:lei", "Uma lei federal passa pela Camara dos Deputados e pelo Senado."),
+        ),
     ),
     Mission(
         id="politica_nacional",
@@ -188,6 +231,13 @@ MISSIONS: tuple[Mission, ...] = (
         success="Isso! O presidente executa a politica nacional dentro da lei e do orcamento.",
         roles=("presidente",),
         lesson="O Executivo federal executa; ele nao substitui o Congresso nem os municipios.",
+        problem_id="programa_nacional",
+        evidence=("politica_nacional:problema", "politica_nacional:testemunho", "politica_nacional:lei"),
+        hints=(
+            ("politica_nacional:problema", "O programa ja tem lei e orcamento; falta executar."),
+            ("politica_nacional:testemunho", "A populacao quer o programa na ponta, dentro das regras."),
+            ("politica_nacional:lei", "O presidente executa politicas nacionais dentro da lei e do orcamento."),
+        ),
     ),
 )
 

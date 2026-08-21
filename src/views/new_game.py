@@ -12,7 +12,7 @@ class NewGameView(arcade.View):
         super().__init__()
         options = [f"SLOT {i}: {save_manager.slot_summary(i)}" for i in range(1, save_manager.SLOT_COUNT + 1)]
         options.append("VOLTAR")
-        self.menu = Menu(options, start_y=config.SCREEN_HEIGHT / 2 + 20, spacing=54)
+        self.menu = Menu(options, start_y=config.SCREEN_HEIGHT / 2 + 20, spacing=54, width=940, font_size=14)
 
     def on_draw(self) -> None:
         self.clear(config.COLOR_BG)
