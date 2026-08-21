@@ -1,0 +1,202 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Option:
+    letter: str
+    text: str
+    correct: bool
+
+
+@dataclass(frozen=True)
+class Mission:
+    id: str
+    order: int
+    stage: str
+    title: str
+    giver: str
+    region_key: str
+    intro: tuple[str, ...]
+    question: str
+    options: tuple[Option, ...]
+    success: str
+    roles: tuple[str, ...]
+    lesson: str
+
+
+# Enredo geral do jogo, apresentado por etapa.
+STORY = {
+    "abertura": (
+        "Joana acaba de se mudar para Aurora do Brasil. Ela percebe que muita gente reclama "
+        "de problemas na cidade, mas quase ninguem sabe QUEM tem o poder de resolver cada um deles.\n"
+        "Decidida a entender a politica de verdade, ela comeca a conversar com quem ocupa cada cargo."
+    ),
+    "municipio": (
+        "ETAPA 1 - O MUNICIPIO\n"
+        "Tudo comeca perto de casa. Na praca, na Camara e na Prefeitura, Joana descobre o que um "
+        "vereador e um prefeito podem e nao podem fazer."
+    ),
+    "estado": (
+        "ETAPA 2 - O ESTADO\n"
+        "Alguns problemas sao grandes demais para um municipio sozinho. Joana viaja ate o centro "
+        "estadual para entender deputados estaduais e o governador."
+    ),
+    "uniao": (
+        "ETAPA 3 - A UNIAO\n"
+        "As leis que valem para todo o pais nascem no Congresso. Joana chega a capital para conhecer "
+        "senadores, deputados federais e o presidente."
+    ),
+    "final": (
+        "ENCERRAMENTO\n"
+        "Depois de percorrer os tres niveis de governo, Joana entende que decisoes publicas dependem "
+        "de competencia, orcamento, leis e participacao. Agora ela sabe a quem cobrar cada assunto."
+    ),
+}
+
+
+MISSIONS: tuple[Mission, ...] = (
+    Mission(
+        id="saude_bairro",
+        order=1,
+        stage="municipio",
+        title="Saude no Bairro",
+        giver="Caio Bairro",
+        region_key="camara",
+        intro=(
+            "Caio Bairro: Joana, moradores pedem uma unidade de saude aqui no bairro ha meses.",
+            "Como vereador, eu proponho leis e fiscalizo, mas nao executo a obra sozinho.",
+            "Me diga: quem deve liderar a execucao dessa unidade de saude?",
+        ),
+        question="Quem deve liderar a execucao da nova unidade de saude?",
+        options=(
+            Option("A", "A prefeitura, com fiscalizacao da Camara Municipal.", True),
+            Option("B", "O Senado, porque todo problema publico e federal.", False),
+            Option("C", "O governador sozinho, sem consultar o municipio.", False),
+        ),
+        success="Isso! O prefeito administra e executa servicos municipais; a Camara legisla e fiscaliza.",
+        roles=("vereador", "prefeito"),
+        lesson="Servicos locais de saude basica sao responsabilidade principal do municipio.",
+    ),
+    Mission(
+        id="orcamento_cidade",
+        order=2,
+        stage="municipio",
+        title="Orcamento da Cidade",
+        giver="Marina Prado",
+        region_key="prefeitura",
+        intro=(
+            "Marina Prado: Ser prefeita e escolher prioridades com um orcamento limitado.",
+            "Neste ano preciso decidir como equilibrar saude, educacao e transporte.",
+            "Qual e a forma mais correta de definir esse gasto?",
+        ),
+        question="Como o gasto publico municipal deve ser definido?",
+        options=(
+            Option("A", "Gastar tudo em uma so area para agradar mais gente.", False),
+            Option("B", "Seguir um orcamento aprovado por lei, com prioridades e transparencia.", True),
+            Option("C", "Decidir sozinha, sem prestar contas a ninguem.", False),
+        ),
+        success="Exato! O orcamento e definido em lei, com prioridades, metas e prestacao de contas.",
+        roles=("prefeito",),
+        lesson="O prefeito executa o orcamento aprovado pela Camara e presta contas a populacao.",
+    ),
+    Mission(
+        id="hospital_regional",
+        order=3,
+        stage="estado",
+        title="Hospital Regional",
+        giver="Lia Campos",
+        region_key="assembleia",
+        intro=(
+            "Lia Campos: Varios municipios vizinhos dependem de um mesmo hospital.",
+            "Como deputada estadual, eu crio leis estaduais e fiscalizo o governo do estado.",
+            "Quem costuma responder por um hospital que atende toda uma regiao?",
+        ),
+        question="Quem responde por um hospital que atende varios municipios?",
+        options=(
+            Option("A", "Apenas um municipio, mesmo atendendo os vizinhos.", False),
+            Option("B", "O governo estadual, que coordena politicas regionais.", True),
+            Option("C", "Uma empresa privada, sem qualquer papel do Estado.", False),
+        ),
+        success="Certo! Servicos de media e alta complexidade regional costumam ser do governo estadual.",
+        roles=("deputado_estadual",),
+        lesson="O estado atua onde a acao ultrapassa as fronteiras de um unico municipio.",
+    ),
+    Mission(
+        id="rodovia_estadual",
+        order=4,
+        stage="estado",
+        title="Rodovia Estadual",
+        giver="Raul Nogueira",
+        region_key="governo",
+        intro=(
+            "Raul Nogueira: Uma rodovia liga cidades do estado e precisa de manutencao.",
+            "Como governador, eu comando o Executivo estadual e executo politicas estaduais.",
+            "De quem e a responsabilidade principal por uma rodovia estadual?",
+        ),
+        question="Quem responde por uma rodovia que liga cidades do estado?",
+        options=(
+            Option("A", "O governo do estado, responsavel pelas rodovias estaduais.", True),
+            Option("B", "Cada motorista, individualmente.", False),
+            Option("C", "A Camara Municipal de uma unica cidade.", False),
+        ),
+        success="Isso! Rodovias estaduais sao do governo estadual; as federais, da Uniao.",
+        roles=("governador",),
+        lesson="O governador executa politicas estaduais, inclusive infraestrutura do estado.",
+    ),
+    Mission(
+        id="lei_federal",
+        order=5,
+        stage="uniao",
+        title="Uma Lei para o Pais",
+        giver="Helena Norte",
+        region_key="congresso",
+        intro=(
+            "Helena Norte: No Congresso, uma lei federal passa por duas casas.",
+            "A Camara dos Deputados representa o povo; o Senado representa os estados.",
+            "Onde nascem e sao aprovadas as leis que valem para todo o pais?",
+        ),
+        question="Onde sao criadas e aprovadas as leis federais?",
+        options=(
+            Option("A", "Somente pelo presidente, por decisao pessoal.", False),
+            Option("B", "No Congresso Nacional: Camara dos Deputados e Senado.", True),
+            Option("C", "Em cada Camara Municipal separadamente.", False),
+        ),
+        success="Perfeito! O Congresso, formado por Camara e Senado, cria as leis federais.",
+        roles=("deputado_federal", "senador"),
+        lesson="Leis federais exigem aprovacao das duas casas do Congresso Nacional.",
+    ),
+    Mission(
+        id="politica_nacional",
+        order=6,
+        stage="uniao",
+        title="Politica Nacional",
+        giver="Lucio Silva",
+        region_key="planalto",
+        intro=(
+            "Lucio Silva: Como presidente, eu chefio o Executivo federal.",
+            "Eu executo politicas nacionais, mas dentro das leis e do orcamento aprovados.",
+            "O que descreve melhor o papel do presidente?",
+        ),
+        question="Qual e o papel do presidente da Republica?",
+        options=(
+            Option("A", "Criar sozinho todas as leis do pais.", False),
+            Option("B", "Executar politicas federais respeitando leis e orcamento aprovados.", True),
+            Option("C", "Administrar diretamente cada cidade do pais.", False),
+        ),
+        success="Isso! O presidente executa a politica nacional dentro da lei e do orcamento.",
+        roles=("presidente",),
+        lesson="O Executivo federal executa; ele nao substitui o Congresso nem os municipios.",
+    ),
+)
+
+MISSIONS_BY_ID = {mission.id: mission for mission in MISSIONS}
+MISSION_BY_GIVER = {mission.giver: mission for mission in MISSIONS}
+
+
+def next_mission(completed: list[str]) -> Mission | None:
+    for mission in sorted(MISSIONS, key=lambda m: m.order):
+        if mission.id not in completed:
+            return mission
+    return None
