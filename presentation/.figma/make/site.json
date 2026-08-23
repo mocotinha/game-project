@@ -1,0 +1,10 @@
+{
+  "description": "Engage users in a 2D educational game that teaches political citizenship and decision-making through interactive exploration and dialogue.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
