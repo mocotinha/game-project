@@ -1,5 +1,9 @@
 {
+  "title": "Aurora",
   "description": "Engage users in a 2D educational game that teaches political citizenship and decision-making through interactive exploration and dialogue.",
+  "icons": {
+    "icon": "/favicon.svg"
+  },
   "robots": {
     "index": false
   },
