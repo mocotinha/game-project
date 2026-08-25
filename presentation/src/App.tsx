@@ -89,7 +89,7 @@ function Slide({
       {/* bottom disclaimer strip */}
       <div className="flex items-center justify-between border-t border-line px-8 py-2">
         <span className="hud-label text-slate/70">Educativo · Não partidário · Personagens e cidade fictícios</span>
-        <span className="hud-label text-slate/70">Projeto acadêmico — USP</span>
+        <span className="hud-label text-slate/70">MAC5784 - Inteligência Artificial em Jogos de Computador (2026)</span>
       </div>
     </div>
   )
@@ -152,7 +152,7 @@ function SlideCover() {
       </div>
 
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8">
-        <span className="hud-label text-slate">Projeto acadêmico — USP</span>
+        <span className="hud-label text-slate">MAC5784 - Inteligência Artificial em Jogos de Computador (2026)</span>
         <span className="hud-label text-slate">Não partidário · Fictício</span>
       </div>
     </div>
@@ -171,7 +171,7 @@ function SlideProblema() {
     { icon: <span className="text-3xl">📜</span>, t: "Criação de leis", ask: "Câmara?" },
   ]
   return (
-    <Slide n={2} kicker="Capítulo 0 · A dúvida">
+    <Slide n={3} kicker="Capítulo 0 · A dúvida">
       <Heading sub="A divisão de responsabilidades públicas nem sempre é clara para o cidadão.">
         Todo mundo sabe reclamar. Mas sabemos <span className="text-gold">a quem cobrar?</span>
       </Heading>
@@ -204,7 +204,7 @@ function SlideIdeia() {
     { e: "⚖️", t: "Decidir", d: "Apontar quem tem competência" },
   ]
   return (
-    <Slide n={3} kicker="Capítulo 0 · A oportunidade">
+    <Slide n={4} kicker="Capítulo 0 · A oportunidade">
       <Heading>
         E se aprender cidadania fosse <span className="text-gold">uma missão?</span>
       </Heading>
@@ -250,7 +250,7 @@ function SlideComoFunciona() {
     "Entender o porquê",
   ]
   return (
-    <Slide n={4} kicker="Loop de gameplay">
+    <Slide n={5} kicker="Loop de gameplay">
       <Heading sub="Cada missão seguirá o mesmo loop investigativo — o conteúdo vive dentro dele.">
         Aprender <span className="text-gold">fazendo</span>
       </Heading>
@@ -308,7 +308,7 @@ function SlideJornada() {
     },
   ]
   return (
-    <Slide n={5} kicker="Mapa de progressão">
+    <Slide n={6} kicker="Mapa de progressão">
       <Heading sub="Joana avançará de bairro em bairro — e de nível em nível de governo.">
         Uma cidade. <span className="text-gold">Três níveis de governo.</span>
       </Heading>
@@ -362,7 +362,7 @@ function SlideMatriz() {
     { lvl: "uniao" as const, level: "União", leg: "Dep. Federal + Senador", exe: "Presidente" },
   ]
   return (
-    <Slide n={6} kicker="Matriz de competências">
+    <Slide n={7} kicker="Matriz de competências">
       <Heading>
         Do problema à <span className="text-gold">responsabilidade</span>
       </Heading>
@@ -409,7 +409,7 @@ function SlideMecanicas() {
     { e: "📖", t: "Diário de Cidadania", d: "Consulta rápida do que cada cargo faz — e não faz." },
   ]
   return (
-    <Slide n={7} kicker="Mecânicas de aprendizagem">
+    <Slide n={8} kicker="Mecânicas de aprendizagem">
       <Heading>
         O conteúdo está <span className="text-gold">dentro da mecânica</span>
       </Heading>
@@ -441,7 +441,7 @@ function SlideObjetivo() {
     { n: "04", v: "Compreender", d: "que políticas envolvem competências, orçamento, leis e escolhas." },
   ]
   return (
-    <Slide n={8} kicker="Objetivos de aprendizagem">
+    <Slide n={9} kicker="Objetivos de aprendizagem">
       <Heading>
         O que queremos que o jogador <span className="text-gold">aprenda?</span>
       </Heading>
@@ -477,7 +477,7 @@ function SlideObjetivo() {
 function SlideCidadania() {
   const cycle = ["Informação", "Participação", "Fiscalização", "Cobrança", "Decisão pública"]
   return (
-    <Slide n={9} kicker="Cidadania contínua">
+    <Slide n={10} kicker="Cidadania contínua">
       <Heading sub="A proposta não reduz cidadania ao processo eleitoral.">
         Participar também é <span className="text-gold">uma mecânica do jogo</span>
       </Heading>
@@ -527,7 +527,7 @@ function SlideODS() {
   ]
   const chain = ["Compreender instituições", "Participar melhor", "Fiscalizar melhor", "Cobrar políticas", "Fortalecer instituições"]
   return (
-    <Slide n={10} kicker="Agenda 2030 · ODS">
+    <Slide n={2} kicker="Agenda 2030 · ODS">
       <Heading sub="Escolhemos este tema porque instituições compreendidas são pré-condição para qualquer meta da Agenda 2030 — sem cidadãos que saibam cobrar, políticas públicas não se sustentam.">
         Educação cidadã como <span className="text-gold">infraestrutura</span> para o desenvolvimento sustentável
       </Heading>
@@ -582,12 +582,12 @@ function SlideODS() {
 
 function SlideTech() {
   const modules = [
-    { t: "Arcade 3.x", d: "sprites · renderização · views · teclado · áudio", a: "emerald" as const },
-    { t: "Conteúdo educativo", d: "missions.py · roles.py · problems.py · sidequests.py", a: "gold" as const },
-    { t: "Motor de regras", d: "rules.py", a: "emerald" as const },
-    { t: "Interface", d: "ui.py", a: "gold" as const },
-    { t: "Persistência", d: "save_manager.py · JSON", a: "emerald" as const },
-    { t: "Testes", d: "pytest", a: "gold" as const },
+    { t: "Motor gráfico", d: "sprites · renderização · views · teclado · áudio", a: "emerald" as const },
+    { t: "Conteúdo educativo", d: "missões, cargos, problemas e side quests", a: "gold" as const },
+    { t: "Motor de regras", d: "valida decisões: problema + testemunho + lei", a: "emerald" as const },
+    { t: "Interface", d: "menus, diálogos, HUD e diário de cidadania", a: "gold" as const },
+    { t: "Persistência", d: "salvar e retomar o progresso da jornada", a: "emerald" as const },
+    { t: "Qualidade", d: "testes automatizados das regras do jogo", a: "gold" as const },
   ]
   return (
     <Slide n={11} kicker="O que vamos usar · Arquitetura">
@@ -624,62 +624,70 @@ function SlideTech() {
 /* ──────────────────── SLIDE 12 — Assets Kenney (CC0) ───────────────────── */
 
 function SlideAssets() {
-  const sprites = [
-    { c: <GovBuilding className="h-full w-full" />, pack: "Roguelike Modern City", use: "Edifícios e ruas top-down" },
-    { c: <Prefeitura className="h-full w-full" />, pack: "RPG Urban Pack", use: "Prédios públicos e cenário urbano" },
-    { c: <Joana className="mx-auto h-full w-auto" />, pack: "RPG Urban Pack", use: "Joana, NPCs e moradores" },
-    { c: <Rodovia className="h-full w-full" />, pack: "City Kit (Roads)", use: "Rodovias e vias" },
-    { c: <span className="text-3xl">⭐</span>, pack: "UI Pack · Game Icons", use: "HUD, provas e ícones de missão" },
-    { c: <span className="text-3xl">💬</span>, pack: "Input Prompts · Emotes", use: "Caixas de diálogo e teclas" },
-  ]
-  const fonts = [
-    { name: "Kenney Future", role: "Display / títulos", pixel: false, w: "font-extrabold" },
-    { name: "Kenney Future Narrow", role: "Rótulos de HUD", pixel: false, w: "font-bold" },
-    { name: "Kenney Pixel", role: "Números e placares", pixel: true, w: "" },
-    { name: "Kenney Mini Square", role: "Micro-labels", pixel: true, w: "" },
+  const packs = [
+    {
+      img: "/kenney/roguelike-modern-city.png",
+      name: "Roguelike Modern City",
+      use: "Cidade top-down em tiles 16×16 — chão, prédios, árvores e veículos.",
+      files: "1036 arquivos",
+      url: "https://kenney.nl/assets/roguelike-modern-city",
+    },
+    {
+      img: "/kenney/pixel-vehicle-pack.png",
+      name: "Pixel Vehicle Pack",
+      use: "Pessoas (Joana e NPCs), veículos nas ruas e mobiliário urbano.",
+      files: "50 arquivos",
+      url: "https://kenney.nl/assets/pixel-vehicle-pack",
+    },
+    {
+      img: "/kenney/ui-pack.png",
+      name: "UI Pack",
+      use: "Painéis e botões 9-slice para menus, diálogos e missões.",
+      files: "430 arquivos",
+      url: "https://kenney.nl/assets/ui-pack",
+    },
+    {
+      img: "/kenney/tiny-town.png",
+      name: "Tiny Town",
+      use: "Tiles complementares de cidade (integração futura).",
+      files: "130 arquivos",
+      url: "https://kenney.nl/assets/tiny-town",
+    },
   ]
   return (
     <Slide n={12} kicker="Recursos de produção">
-      <Heading sub="Todo o kit visual e tipográfico virá do acervo CC0 do kenney.nl — uso livre, sem custo e sem atribuição obrigatória.">
+      <Heading sub="Todo o kit visual virá do acervo CC0 do kenney.nl. Estes são os prints reais de cada pack — clique nos links para ver o conteúdo completo.">
         O que vamos usar para <span className="text-gold">construir Aurora</span>
       </Heading>
-      <div className="grid grid-cols-[1.55fr_1fr] gap-5">
-        {/* sprites */}
-        <div>
-          <p className="hud-label mb-2 text-emerald">Sprites · packs Kenney</p>
-          <div className="grid grid-cols-3 gap-3">
-            {sprites.map((s) => (
-              <Card key={s.pack + s.use} accent="emerald" className="flex flex-col">
-                <div className="grid h-16 place-items-center rounded-sm border border-line bg-ink p-1.5">
-                  <div className="h-12 w-12">{s.c}</div>
-                </div>
-                <p className="mt-2 font-pixel text-[0.45rem] leading-relaxed text-gold">{s.pack}</p>
-                <p className="mt-1 text-xs leading-tight text-cream-dim">{s.use}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-        {/* fonts */}
-        <div>
-          <p className="hud-label mb-2 text-gold">Fontes · Kenney Fonts (11 × CC0)</p>
-          <div className="space-y-2.5">
-            {fonts.map((f) => (
-              <div key={f.name} className="rounded-md border border-line bg-petrol/50 px-3 py-2.5">
-                <div className="flex items-baseline justify-between">
-                  <span className={`text-cream ${f.pixel ? "font-pixel text-[0.7rem]" : `font-display text-lg ${f.w}`}`}>
-                    {f.pixel ? "AURORA 2026" : "Aurora"}
-                  </span>
-                  <span className="hud-label text-slate">{f.role}</span>
-                </div>
-                <p className="mt-1 text-xs text-cream-dim">{f.name}</p>
+      <div className="grid grid-cols-2 gap-3">
+        {packs.map((p) => (
+          <a
+            key={p.name}
+            href={p.url}
+            target="_blank"
+            rel="noreferrer"
+            className="group flex gap-3 overflow-hidden rounded-md border border-line bg-petrol/60 p-2.5 transition-colors hover:border-emerald"
+          >
+            <div className="grid h-24 w-40 shrink-0 place-items-center overflow-hidden rounded-sm border border-line bg-ink">
+              <img src={p.img} alt={`Preview do pack ${p.name}`} className="h-full w-full object-cover" loading="lazy" />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate font-display text-base font-bold text-cream">{p.name}</p>
+                <span className="hud-label shrink-0 rounded-sm border border-emerald/40 bg-emerald/10 px-1.5 py-0.5 text-emerald">CC0</span>
               </div>
-            ))}
-          </div>
-        </div>
+              <p className="mt-1 text-xs leading-tight text-cream-dim">{p.use}</p>
+              <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+                <span className="font-pixel text-[0.45rem] text-slate">{p.files}</span>
+                <span className="truncate font-pixel text-[0.45rem] text-gold group-hover:underline">{p.url.replace("https://", "")}</span>
+              </div>
+            </div>
+          </a>
+        ))}
       </div>
       <p className="mt-4 text-center text-sm text-cream-dim">
-        <span className="text-emerald">Kenney — CC0</span>: acelera a produção, mantém coerência visual e libera o time para focar no{" "}
-        <span className="text-cream">conteúdo educativo</span>. <span className="text-slate">Amostras aproximadas.</span>
+        <span className="text-emerald">Kenney — CC0</span>: uso livre, sem custo e sem atribuição obrigatória — acelera a produção e libera o time para focar no{" "}
+        <span className="text-cream">conteúdo educativo</span>.
       </p>
     </Slide>
   )
@@ -723,7 +731,7 @@ function SlideEncerramento() {
 
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8">
         <span className="hud-label text-gold">Aurora: Quem Decide?</span>
-        <span className="hud-label text-slate">Projeto acadêmico — USP · Não partidário · Fictício</span>
+        <span className="hud-label text-slate">MAC5784 - Inteligência Artificial em Jogos de Computador (2026) · Não partidário · Fictício</span>
       </div>
     </div>
   )
@@ -733,6 +741,7 @@ function SlideEncerramento() {
 
 const SLIDES = [
   SlideCover,
+  SlideODS,
   SlideProblema,
   SlideIdeia,
   SlideComoFunciona,
@@ -741,7 +750,6 @@ const SLIDES = [
   SlideMecanicas,
   SlideObjetivo,
   SlideCidadania,
-  SlideODS,
   SlideTech,
   SlideAssets,
   SlideEncerramento,

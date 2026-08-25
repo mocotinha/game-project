@@ -28,5 +28,5 @@ DISCLAIMER = "Personagens e acontecimentos sao ficticios. Conteudo educativo e n
 
 # Dados do criador (edite livremente).
 CREATOR_NAME = "Joao Junior"
-CREATOR_ORG = "USP - Projeto de Jogo"
+CREATOR_ORG = "MAC5784 - Inteligência Artificial em Jogos de Computador (2026)"
 CREATOR_YEAR = "2026"
