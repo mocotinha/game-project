@@ -196,7 +196,9 @@ Controles: setas ou `WASD` (mover), `E`/`Enter` (interagir), `M` (áudio), `Esc`
 
 ### Documentos internos do projeto
 
+- [docs/game-design-document.md](game-design-document.md) — Documento de Game Design (GDD) completo
 - [docs/game-design.md](game-design.md) — Design e objetivo pedagógico
+- [docs/referencias/](referencias/README.md) — Referências acadêmicas de game design
 - [docs/asset-registry.md](asset-registry.md) — Registro e licenças dos assets
 - [README.md](../README.md) — Instruções de execução
 
