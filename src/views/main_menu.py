@@ -23,7 +23,7 @@ class MainMenuView(arcade.View):
         audio.play_music("menu")
 
     def on_draw(self) -> None:
-        self.clear(config.COLOR_BG)
+        ui.begin_frame(self)
         cx = config.SCREEN_WIDTH / 2
         # Cabecalho estilizado
         arcade.draw_lbwh_rectangle_filled(0, config.SCREEN_HEIGHT - 220, config.SCREEN_WIDTH, 220, (23, 40, 40))

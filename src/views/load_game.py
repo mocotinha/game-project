@@ -15,7 +15,7 @@ class LoadGameView(arcade.View):
         self.message = ""
 
     def on_draw(self) -> None:
-        self.clear(config.COLOR_BG)
+        ui.begin_frame(self)
         cx = config.SCREEN_WIDTH / 2
         ui.label("LOAD GAME", cx, config.SCREEN_HEIGHT - 90, config.COLOR_ACCENT, 34, anchor_x="center", bold=True)
         ui.label("Selecione um save para continuar. DEL apaga o espaco selecionado.", cx, config.SCREEN_HEIGHT - 135, config.COLOR_TEXT_SOFT, 15, anchor_x="center")

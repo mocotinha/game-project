@@ -4,6 +4,7 @@ const TOTAL = 13
 import {
   Joana,
   Prefeitura,
+  Camara,
   Hospital,
   Escola,
   Praca,
@@ -737,27 +738,624 @@ function SlideEncerramento() {
   )
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   APRESENTAÇÃO 2 — GAME DESIGN (a partir do GDD)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* small flow node */
+function Node({ children, tone = "petrol" }: { children: ReactNode; tone?: "petrol" | "emerald" | "gold" }) {
+  const t =
+    tone === "emerald"
+      ? "border-emerald/50 bg-emerald/10 text-cream"
+      : tone === "gold"
+        ? "border-gold/50 bg-gold/10 text-cream"
+        : "border-line bg-petrol/60 text-cream"
+  return <div className={`rounded-sm border px-3 py-2 text-center text-sm leading-tight ${t}`}>{children}</div>
+}
+
+/* ── V2 · SLIDE 1 — Capa Game Design ─────────────────────────── */
+function V2Cover() {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-ink">
+      <div className="absolute inset-0 map-grid opacity-60" />
+      <div className="absolute inset-0">
+        <CityPanorama className="h-full w-full opacity-25" />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" />
+
+      <div className="absolute right-8 top-8 h-16 w-16 floaty">
+        <LevelBadge level="uniao" className="h-full w-full" />
+      </div>
+      <div className="absolute bottom-[14%] right-[10%] h-28 w-20 floaty">
+        <Joana className="h-full w-full" />
+      </div>
+
+      <div className="relative flex h-full flex-col justify-center px-14">
+        <Tag tone="emerald">◆ Documento de Game Design · GDD</Tag>
+        <h1 className="mt-4 font-display text-[3.6rem] font-extrabold leading-[0.95] tracking-tight text-cream">
+          Como <span className="text-gold">Aurora</span> foi projetada
+        </h1>
+        <p className="mt-3 max-w-xl text-lg leading-snug text-cream-dim">
+          O design por trás do jogo: da mecânica à emoção — segundo MDA, as lentes de Schell e as Quatro Chaves de Lazzaro.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Tag tone="gold">MDA Framework</Tag>
+          <Tag>Serious Game</Tag>
+          <Tag tone="cream">Protótipo · vertical slice</Tag>
+        </div>
+        <p className="mt-8 max-w-md rounded-md border-l-2 border-gold bg-petrol/50 px-4 py-3 font-display text-lg italic text-cream">
+          "Antes de cobrar, descubra quem decide."
+        </p>
+      </div>
+
+      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8">
+        <span className="hud-label text-slate">Projeto acadêmico — USP</span>
+        <span className="hud-label text-slate">Educativo · Não partidário · Fictício</span>
+      </div>
+    </div>
+  )
+}
+
+/* ── V2 · SLIDE 2 — Pilar e hipótese ─────────────────────────── */
+function V2Pilar() {
+  return (
+    <Slide n={2} kicker="Pilar de design · Fullerton">
+      <div className="flex h-full flex-col">
+        <Heading sub="O jogo é, deliberadamente, um protótipo.">
+          Um único pilar. <span className="text-gold">Uma hipótese a provar.</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-6">
+          <Card accent="gold" className="flex flex-col justify-center">
+            <p className="hud-label text-gold">Pilar único</p>
+            <p className="mt-3 font-display text-3xl font-extrabold leading-tight text-cream">
+              Toda mecânica leva o jogador a <span className="text-emerald">raciocinar sobre responsabilidade pública.</span>
+            </p>
+            <p className="mt-4 text-base text-cream-dim">Se uma feature não serve a isso, fica fora do escopo do protótipo.</p>
+          </Card>
+          <Card accent="emerald" className="flex flex-col justify-center">
+            <p className="hud-label text-emerald">Hipótese central</p>
+            <p className="mt-3 text-lg leading-relaxed text-cream">
+              Uma missão de <span className="text-gold">responsabilidade</span> somada a um sistema de{" "}
+              <span className="text-gold">provas</span> ensina a divisão de competências melhor que um texto expositivo —
+              e gera <span className="text-emerald">fiero</span> ("eu descobri quem decide").
+            </p>
+            <div className="mt-4 rounded-sm border-l-2 border-emerald bg-ink/50 px-3 py-2">
+              <p className="text-sm leading-snug text-cream-dim">
+                <span className="font-display font-bold text-emerald">fiero</span>{" "}
+                <span className="text-slate">(it. "orgulho")</span> — a emoção de{" "}
+                <span className="text-cream">triunfo pessoal ao superar um desafio</span>; é a chave{" "}
+                <span className="text-cream">Hard Fun</span> das Quatro Chaves da Diversão de{" "}
+                <span className="text-cream">Nicole Lazzaro</span>. No jogo, surge no instante em que o jogador deduz e
+                acerta o nível de governo responsável.
+              </p>
+            </div>
+          </Card>
+        </div>
+        <div className="mt-6 rounded-md border border-line bg-petrol/40 px-5 py-4">
+          <p className="hud-label mb-3 text-center text-slate">Do design ao aprendizado</p>
+          <div className="flex items-center justify-center gap-3">
+            {["Mecânica", "Provas", "Dedução", "Fiero", "Aprendizado"].map((s, i) => (
+              <div key={s} className="flex items-center gap-3">
+                <span className="rounded-sm border border-line bg-ink/60 px-4 py-2 text-base text-cream">{s}</span>
+                {i < 4 && <span className="text-gold">→</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 3 — MDA Framework ────────────────────────────── */
+function V2MDA() {
+  const rows = [
+    { l: "Mecânicas", d: "Explorar top-down · conversar · missão de múltipla escolha · coletar provas · side quests · diário", tone: "emerald" as const },
+    { l: "Dinâmicas", d: "Investigar antes de responder · cruzar testemunhos com o diário · deduzir o nível responsável", tone: "gold" as const },
+    { l: "Estéticas", d: "Descoberta (primária) · Desafio · Narrativa · Expressão cívica", tone: "gold" as const },
+  ]
+  return (
+    <Slide n={3} kicker="Enquadramento MDA">
+      <div className="flex h-full flex-col">
+      <Heading sub="Projetamos de baixo para cima (mecânica → dinâmica → estética); o jogador experimenta de cima para baixo.">
+        Mecânicas, Dinâmicas, <span className="text-gold">Estéticas</span>
+      </Heading>
+      {/* Reprodução da Figura 1 original do artigo MDA */}
+      <div className="mb-4 rounded-md border border-line bg-petrol/40 px-6 py-4">
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { m: "Mechanics", s: "Rules" },
+            { m: "Dynamics", s: "System" },
+            { m: "Aesthetics", s: '"Fun"' },
+          ].map((c) => (
+            <div key={c.m} className="rounded-sm border border-line bg-ink/60 px-3 py-2 text-center">
+              <p className="font-display text-base font-bold text-cream">{c.m}</p>
+              <p className="hud-label text-slate">{c.s}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="hud-label shrink-0 text-emerald">Designer</span>
+            <span className="h-px flex-1 bg-gradient-to-r from-emerald/20 to-emerald" />
+            <span className="text-emerald">▶</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gold">◀</span>
+            <span className="h-px flex-1 bg-gradient-to-l from-gold/20 to-gold" />
+            <span className="hud-label shrink-0 text-gold">Player · Jogador</span>
+          </div>
+        </div>
+        <p className="hud-label mt-3 text-center text-slate">
+          Figura 1 — MDA Framework · Hunicke, LeBlanc &amp; Zubek (2004)
+        </p>
+      </div>
+      <div className="flex flex-1 flex-col justify-center gap-3">
+        {rows.map((r) => (
+          <Card key={r.l} accent={r.tone} className="flex items-center gap-4 py-4">
+            <span className="w-28 shrink-0 font-display text-lg font-bold text-cream">{r.l}</span>
+            <span className="h-6 w-px bg-line" />
+            <span className="text-base text-cream-dim">{r.d}</span>
+          </Card>
+        ))}
+      </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 4 — Quatro Chaves da Diversão ────────────────── */
+function V2Chaves() {
+  const keys = [
+    { k: "Serious Fun", e: "propósito", icon: "🎯", d: "aprender competências; provas e diário dão peso de trabalho real", primary: true },
+    { k: "Easy Fun", e: "curiosidade", icon: "🔍", d: "explorar Aurora, ouvir moradores, descobrir cargos", primary: false },
+    { k: "Hard Fun", e: "fiero", icon: "🏆", d: "acertar o nível de governo responsável", primary: false },
+    { k: "People Fun", e: "calor humano", icon: "🤝", d: "Discussão com outros jogadores)", primary: false },
+  ]
+  return (
+    <Slide n={4} kicker="Quatro Chaves da Diversão · Lazzaro">
+      <div className="flex h-full flex-col">
+        <Heading sub="Quais emoções o jogo busca — e como cada mecânica as entrega.">
+          A emoção é <span className="text-gold">parte do projeto</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-4 gap-4">
+          {keys.map((k) => (
+            <Card key={k.k} accent={k.primary ? "gold" : "emerald"} className="flex flex-col">
+              <p className="font-display text-xl font-bold text-cream">{k.k}</p>
+              <span className={`hud-label mt-1 ${k.primary ? "text-gold" : "text-emerald"}`}>{k.e}</span>
+              <div className="grid flex-1 place-items-center py-2">
+                <span className="text-6xl">{k.icon}</span>
+              </div>
+              <p className="text-sm leading-snug text-cream-dim">{k.d}</p>
+              {k.primary && <span className="mt-2 hud-label text-gold">◆ Primária</span>}
+            </Card>
+          ))}
+        </div>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-md border border-emerald/30 bg-emerald/5 px-4 py-3 text-sm text-cream">
+          <span className="hud-label text-slate">PX Spiral</span>
+          {["curiosidade", "investigação", "dúvida", "fiero", "alívio", "próxima missão"].map((s, i) => (
+            <span key={s} className="flex items-center gap-2">
+              {s} {i < 5 && <span className="text-gold">→</span>}
+            </span>
+          ))}
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 5 — Mecânicas ────────────────────────────────── */
+function V2Mecanicas() {
+  const m = [
+    { e: "🗺️", t: "Exploração top-down", d: "Mapeamento natural (setas/WASD); cada prédio ancora um cargo." },
+    { e: "💬", t: "Diálogo (E/Enter)", d: "NPCs apresentam problema, função do cargo e a pergunta." },
+    { e: "⚖️", t: "Missão-âncora", d: "Múltipla escolha por nível/cargo" },
+    { e: "⭐", t: "Provas (valor endógeno)", d: "Problema + testemunho + lei" },
+    { e: "🧑‍🤝‍🧑", t: "Side quests", d: "Ouvir moradores concede a prova :testemunho e estrela." },
+    { e: "📖", t: "Diário de Cidadania", d: "Memória externa: o que cada cargo faz — e não faz." },
+  ]
+  return (
+    <Slide n={5} kicker="Mecânicas do protótipo">
+      <div className="flex h-full flex-col">
+        <Heading sub="Seis mecânicas — todas subordinadas ao pilar de raciocinar sobre responsabilidade.">
+          O que o jogador <span className="text-gold">faz</span>
+        </Heading>
+        <div className="grid flex-1 auto-rows-fr grid-cols-3 gap-4">
+          {m.map((x, i) => (
+            <Card key={x.t} accent={i % 2 ? "gold" : "emerald"} className="flex flex-col justify-center">
+              <span className="text-3xl">{x.e}</span>
+              <p className="mt-2 font-display text-lg font-bold text-cream">{x.t}</p>
+              <p className="mt-1 text-sm leading-snug text-cream-dim">{x.d}</p>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 6 — Regras ───────────────────────────────────── */
+function V2Regras() {
+  const r = [
+    "Uma missão = uma pergunta de responsabilidade.",
+    "Errar não pune com game over — devolve uma dica que reformula o raciocínio.",
+    "Provas embasam, não substituem, o raciocínio.",
+    "Progressão por níveis: Município → Estado → União.",
+    "Distinção de poderes é regra de conteúdo (Legislativo × Executivo).",
+    "Fidelidade cívica: fontes oficiais, sem partido, voto ou evento real.",
+  ]
+  return (
+    <Slide n={6} kicker="Regras do sistema formal">
+      <div className="flex h-full flex-col">
+        <Heading sub="A cidade é o círculo mágico: dentro dela, provas e estrelas têm valor.">
+          As regras que <span className="text-gold">sustentam o aprendizado</span>
+        </Heading>
+        <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-4">
+          {r.map((x, i) => (
+            <Card key={i} accent={i < 3 ? "emerald" : "gold"} className="flex items-center gap-4">
+              <span className="font-pixel text-lg text-gold">{String(i + 1).padStart(2, "0")}</span>
+              <p className="text-base leading-snug text-cream">{x}</p>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 7 — Espaços (o mundo) ────────────────────────── */
+function V2Espacos() {
+  return (
+    <Slide n={7} kicker="Espaços · mapa de interesse de Schell">
+      <Heading sub="Os espaços são organizados para que o lugar ensine: cada ambiente materializa um nível de governo.">
+        O lugar <span className="text-gold">é o argumento</span>
+      </Heading>
+      <div className="grid grid-cols-[1.1fr_1fr] gap-6">
+        <div className="flex flex-col items-center justify-center gap-3">
+          <Node tone="gold">
+            <span className="hud-label text-gold">Hub</span>
+            <br />
+            Praça de Aurora
+          </Node>
+          <span className="text-emerald">↓</span>
+          <div className="flex gap-3">
+            <div className="flex flex-col items-center gap-1">
+              <Camara className="h-10 w-10" />
+              <Node tone="emerald">Câmara · Legislativo</Node>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <Prefeitura className="h-10 w-10" />
+              <Node tone="emerald">Prefeitura · Executivo</Node>
+            </div>
+          </div>
+          <span className="text-gold">↓ Etapa 2</span>
+          <Node>Centro Estadual · dep. estadual / governador</Node>
+          <span className="text-gold">↓ Etapa 3</span>
+          <Node>Capital / Congresso · deputados, senadores, presidente</Node>
+        </div>
+        <div className="grid content-center gap-2.5">
+          {[
+            ["Praça", "Hub inicial — a curiosidade nasce"],
+            ["Câmara", "Legislativo local: propor e fiscalizar"],
+            ["Prefeitura", "Executivo local: executar e orçar"],
+            ["Centro Estadual", "Hospitais, rodovias, segurança"],
+            ["Capital / Congresso", "Leis nacionais; Câmara × Senado"],
+          ].map(([a, b]) => (
+            <div key={a} className="flex items-center gap-3 rounded-sm border border-line bg-petrol/50 px-3 py-2">
+              <span className="w-36 shrink-0 font-display text-sm font-bold text-cream">{a}</span>
+              <span className="text-xs text-cream-dim">{b}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 8 — Sensações / Game Feel ────────────────────── */
+function V2GameFeel() {
+  const f = [
+    { t: "Entrada", icon: "⌨️", d: "Resposta imediata e previsível ao teclado (mapeamento natural)." },
+    { t: "Resposta", icon: "💬", d: "Feedback claro em diálogos e na resolução da missão." },
+    { t: "Contexto", icon: "🗺️", d: "Andar até a Prefeitura é, em si, um argumento: 'é aqui que se executa'." },
+    { t: "Musica/Ambientes/Cores", icon: "🎵", d: "Outros artefatos que afetam a experiência sensorial do jogador." },
+  ]
+  return (
+    <Slide n={8} kicker="Sensações · Game Feel de Swink">
+      <div className="flex h-full flex-col">
+        <Heading sub="A metáfora segura: a cidade fictícia discute instituições reais sem citá-las.">
+          Da <span className="text-gold">dúvida</span> à <span className="text-emerald">clareza</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-4 gap-4">
+          {f.map((x, i) => (
+            <Card key={x.t} accent={i % 2 ? "gold" : "emerald"} className="flex flex-col justify-center">
+              <span className="text-5xl">{x.icon}</span>
+              <p className="mt-3 font-display text-xl font-bold text-cream">{x.t}</p>
+              <p className="mt-2 text-sm leading-snug text-cream-dim">{x.d}</p>
+            </Card>
+          ))}
+        </div>
+        <div className="mt-6 grid place-items-center">
+          <div className="rounded-md border-2 border-gold bg-gold/10 px-8 py-4 text-center">
+            <p className="hud-label mb-1 text-gold">Sensação-alvo dominante</p>
+            <p className="font-display text-2xl font-extrabold text-cream">
+              "Agora sei quem decide." <span className="text-emerald">→ momento de fiero</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 9 — Narrativa ────────────────────────────────── */
+function V2Narrativa() {
+  const atos = [
+    { lvl: "municipio" as const, t: "Ato 1 · Município", d: "Problemas perto de casa. Joana aprende vereador e prefeito." },
+    { lvl: "estado" as const, t: "Ato 2 · Estado", d: "Grandes demais para um município. Deputado estadual e governador." },
+    { lvl: "uniao" as const, t: "Ato 3 · União", d: "Leis para todo o país. Deputados federais, senadores, presidente." },
+  ]
+  return (
+    <Slide n={9} kicker="Narrativa · tecida, não pregada">
+      <div className="flex h-full flex-col">
+        <Heading>
+          Três atos, <span className="text-gold">três níveis de governo</span>
+        </Heading>
+        <DialogBox speaker="Logline" color="emerald" avatar={<Joana className="h-full w-full" />}>
+          Joana muda-se para Aurora do Brasil, percebe que todos reclamam mas ninguém sabe quem resolve — e decide entender
+          a política conversando com quem ocupa cada cargo.
+        </DialogBox>
+        <div className="mt-5 grid flex-1 grid-cols-3 gap-4">
+          {atos.map((a) => (
+            <Card key={a.t} accent="gold" className="flex flex-col justify-center">
+              <div className="flex items-center gap-2">
+                <LevelBadge level={a.lvl} className="h-10 w-10" />
+                <p className="font-display text-lg font-bold text-cream">{a.t}</p>
+              </div>
+              <p className="mt-3 text-base leading-snug text-cream-dim">{a.d}</p>
+            </Card>
+          ))}
+        </div>
+        <p className="mt-5 text-center text-sm text-cream-dim">
+          Encerramento: decisões públicas dependem de{" "}
+          <span className="text-emerald">competência, orçamento, leis e participação.</span>
+        </p>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 10 — Teoria dos jogos ────────────────────────── */
+function V2GameTheory() {
+  const map = [
+    ["Agente", "Cargo com poder de decisão — e a cidadã Joana"],
+    ["Estratégia", "Legislar, executar, fiscalizar, cooperar"],
+    ["Payoff", "Provas, estrelas e feedback educativo"],
+    ["Informação", "Descobrir 'quem decide' é a mecânica central"],
+  ]
+  const dilemas = [
+    { t: "Dilema do orçamento", d: "Saúde × transporte × educação disputam o mesmo recurso (trade-off)." },
+    { t: "Ação coletiva", d: "Um serviço só se viabiliza se município + estado cooperarem (ODS 17)." },
+    { t: "Assimetria de informação", d: "O payoff do cidadão melhora quando ele descobre quem decide." },
+  ]
+  return (
+    <Slide n={10} kicker="Teoria dos jogos · agentes estratégicos">
+      <div className="flex h-full flex-col">
+        <Heading sub="A política pública é um sistema de agentes com competências, orçamentos e interesses que decidem sob restrições.">
+          Decisão estratégica como <span className="text-gold">conteúdo</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-5">
+          <div className="grid content-between gap-3">
+            <p className="hud-label text-emerald">Mapeamento cívico</p>
+            {map.map(([a, b]) => (
+              <div key={a} className="flex items-center gap-3 rounded-sm border border-line bg-petrol/50 px-4 py-3">
+                <span className="w-28 shrink-0 font-display text-base font-bold text-gold">{a}</span>
+                <span className="text-sm text-cream-dim">{b}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid content-between gap-3">
+            <p className="hud-label text-gold">Dilemas viram missões</p>
+            {dilemas.map((d) => (
+              <Card key={d.t} accent="gold" className="flex flex-col justify-center py-3">
+                <p className="font-display text-base font-bold text-cream">{d.t}</p>
+                <p className="mt-1 text-sm leading-snug text-cream-dim">{d.d}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 11 — Playtesting ─────────────────────────────── */
+function V2Playtest() {
+  const q = [
+    ["🎯", "Por quê?", "O jogador deduz o nível de governo? Consegue explicar uma atribuição depois?"],
+    ["👥", "Quem?", "Amigos e colegas; depois, estudantes do público-alvo."],
+    ["📍", "Onde?", "Turma de ensino fundamental II ou médio."],
+    ["👀", "O quê?", "Momentos de dúvida na múltipla escolha + surpresas (o que confunde ou encanta)."],
+    ["📝", "Como?", "Observar rostos, entrevista curta, pedir 'as 3 coisas menos claras'."],
+  ]
+  return (
+    <Slide n={11} kicker="Plano de playtesting · 5 perguntas de Schell">
+      <div className="flex h-full flex-col">
+        <Heading>
+          Validar a hipótese <span className="text-gold">com pessoas reais</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-5 gap-3">
+          {q.map(([ic, a, b], i) => (
+            <Card key={a} accent={i === 0 ? "gold" : "emerald"} className="flex flex-col">
+              <p className="font-display text-lg font-extrabold text-gold">{a}</p>
+              <div className="grid flex-1 place-items-center py-1">
+                <span className="text-4xl">{ic}</span>
+              </div>
+              <p className="text-sm leading-snug text-cream-dim">{b}</p>
+            </Card>
+          ))}
+        </div>
+        <div className="mt-6 grid place-items-center">
+          <div className="rounded-md border-2 border-emerald bg-emerald/10 px-8 py-4 text-center">
+            <p className="hud-label mb-1 text-emerald">Métrica de sucesso</p>
+            <p className="font-display text-xl font-bold text-cream">
+              A maioria relaciona o problema ao nível correto <span className="text-gold">e</span> justifica com uma atribuição —
+              sem ajuda.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 12 — Oportunidades de design ─────────────────── */
+function V2Backlog() {
+  const items = [
+    { p: "🟢", t: "Dilema de orçamento jogável", d: "Primeiro trade-off explícito — custo de oportunidade.", a: "gold" as const },
+    { p: "🟢", t: "Reforço do fiero", d: "Feedback de acerto mais expressivo no 'descobri quem decide'.", a: "gold" as const },
+    { p: "🟢", t: "Diário como avaliação formativa", d: "Quiz de fechamento por etapa checa os objetivos.", a: "gold" as const },
+    { p: "🟡", t: "NPCs como agentes estratégicos", d: "Cargos que 'decidem' segundo incentivos e limites.", a: "emerald" as const },
+    { p: "🟡", t: "Missões de cooperação entre níveis", d: "Coordenar município + estado (ODS 17).", a: "emerald" as const },
+    { p: "🔵", t: "Simulação de orçamento", d: "Alocar recursos e ver consequências ao longo do tempo.", a: "emerald" as const },
+  ]
+  return (
+    <Slide n={12} kicker="Oportunidades de design · backlog">
+      <div className="flex h-full flex-col">
+        <Heading sub="Cada item traz uma pergunta de protótipo e a estética-alvo.">
+          Para onde <span className="text-gold">Aurora pode evoluir</span>
+        </Heading>
+        <div className="grid flex-1 auto-rows-fr grid-cols-3 gap-4">
+          {items.map((x) => (
+            <Card key={x.t} accent={x.a} className="flex flex-col justify-center">
+              <div className="flex items-center gap-2">
+                <span className="text-base">{x.p}</span>
+                <p className="font-display text-base font-bold leading-tight text-cream">{x.t}</p>
+              </div>
+              <p className="mt-2 text-sm leading-snug text-cream-dim">{x.d}</p>
+            </Card>
+          ))}
+        </div>
+        <div className="mt-5 flex items-center justify-center gap-4 text-sm text-cream-dim">
+          <span>🟢 alta</span>
+          <span>🟡 média</span>
+          <span>🔵 exploratória</span>
+          <span className="text-slate">· toda evolução serve ao pilar único e passa por playtesting</span>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V2 · SLIDE 13 — Encerramento Game Design ────────────────── */
+function V2Encerramento() {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-ink">
+      <div className="absolute inset-0">
+        <CityPanorama className="h-full w-full opacity-70" dusk />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent" />
+      <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
+        <Tag tone="gold">◆ Pilar único</Tag>
+        <h1 className="mt-4 font-display text-[3.4rem] font-extrabold leading-[0.95] tracking-tight text-cream drop-shadow-[0_3px_0_rgba(0,0,0,0.5)]">
+          Cada mecânica leva a <span className="text-gold">raciocinar sobre responsabilidade.</span>
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg leading-snug text-cream">
+          Aurora não ensina em quem votar. <span className="text-emerald">Ensina como o Estado funciona</span> e como o
+          cidadão pode participar dele.
+        </p>
+        <div className="mt-6 flex items-center gap-3">
+          {["MDA", "Schell", "Lazzaro", "Fullerton"].map((w, i) => (
+            <span key={w} className="font-display text-lg font-bold text-cream">
+              {w}
+              {i < 3 && <span className="ml-3 text-gold">·</span>}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8">
+        <span className="hud-label text-gold">Aurora: Quem Decide? · Game Design</span>
+        <span className="hud-label text-slate">Projeto acadêmico — USP</span>
+      </div>
+    </div>
+  )
+}
+
 /* ──────────────────────────── Deck controller ──────────────────────────── */
 
-const SLIDES = [
-  SlideCover,
-  SlideODS,
-  SlideProblema,
-  SlideIdeia,
-  SlideComoFunciona,
-  SlideJornada,
-  SlideMatriz,
-  SlideMecanicas,
-  SlideObjetivo,
-  SlideCidadania,
-  SlideTech,
-  SlideAssets,
-  SlideEncerramento,
-]
+const DECKS = {
+  1: {
+    title: "O protótipo",
+    slides: [
+      SlideCover,
+      SlideODS,
+      SlideProblema,
+      SlideIdeia,
+      SlideComoFunciona,
+      SlideJornada,
+      SlideMatriz,
+      SlideMecanicas,
+      SlideObjetivo,
+      SlideCidadania,
+      SlideTech,
+      SlideAssets,
+      SlideEncerramento,
+    ],
+  },
+  2: {
+    title: "Design do projeto real",
+    slides: [
+      V2Cover,
+      V2Pilar,
+      V2MDA,
+      V2Chaves,
+      V2Mecanicas,
+      V2Regras,
+      V2Espacos,
+      V2GameFeel,
+      V2Narrativa,
+      V2GameTheory,
+      V2Playtest,
+      V2Backlog,
+      V2Encerramento,
+    ],
+  },
+} as const
+
+type Version = 1 | 2
+
+/* Segmented control to switch between the two evolutionary presentations */
+function VersionSwitch({ version, onChange }: { version: Version; onChange: (v: Version) => void }) {
+  return (
+    <div className="pointer-events-auto absolute left-1/2 top-4 z-20 -translate-x-1/2">
+      <div className="flex items-center gap-1 rounded-md border border-line bg-ink/85 p-1 backdrop-blur-sm">
+        {([1, 2] as Version[]).map((v) => (
+          <button
+            key={v}
+            onClick={() => onChange(v)}
+            className={`hud-label rounded-sm px-3 py-1.5 transition ${
+              version === v ? "bg-gold text-ink" : "text-cream-dim hover:text-gold"
+            }`}
+          >
+            Apresentação {v}
+            <span className={`ml-2 normal-case ${version === v ? "text-ink/70" : "text-slate"}`}>· {DECKS[v].title}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function App() {
+  const [version, setVersion] = useState<Version>(1)
   const [i, setI] = useState(0)
-  const go = useCallback((d: number) => setI((p) => Math.min(SLIDES.length - 1, Math.max(0, p + d))), [])
+  const slides = DECKS[version].slides
+  const go = useCallback((d: number) => setI((p) => Math.min(slides.length - 1, Math.max(0, p + d))), [slides.length])
+
+  const switchVersion = useCallback((v: Version) => {
+    setVersion(v)
+    setI(0)
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -768,14 +1366,16 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey)
   }, [go])
 
-  const Current = SLIDES[i]
+  const Current = slides[i]
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[#06141c] p-4 sm:p-6">
       {/* 16:9 stage */}
       <div className="relative w-full max-w-[1280px]" style={{ aspectRatio: "16 / 9" }}>
         <div className="absolute inset-0 overflow-hidden rounded-lg border border-line shadow-[0_24px_80px_-20px_rgba(0,0,0,0.8)]">
-          <Current key={i} />
+          <Current key={`${version}-${i}`} />
+          {/* version selector lives on the first slide of each presentation */}
+          {i === 0 && <VersionSwitch version={version} onChange={switchVersion} />}
         </div>
       </div>
 
@@ -789,22 +1389,27 @@ export default function App() {
           ◀ Anterior
         </button>
 
-        <div className="flex items-center gap-1.5">
-          {SLIDES.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setI(idx)}
-              aria-label={`Ir para o slide ${idx + 1}`}
-              className={`h-2 rounded-full transition-all ${
-                idx === i ? "w-6 bg-gold" : "w-2 bg-slate/50 hover:bg-emerald"
-              }`}
-            />
-          ))}
+        <div className="flex items-center gap-3">
+          <span className="hud-label hidden text-slate sm:inline">
+            Apresentação {version} · {DECKS[version].title}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setI(idx)}
+                aria-label={`Ir para o slide ${idx + 1}`}
+                className={`h-2 rounded-full transition-all ${
+                  idx === i ? "w-6 bg-gold" : "w-2 bg-slate/50 hover:bg-emerald"
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
         <button
           onClick={() => go(1)}
-          disabled={i === SLIDES.length - 1}
+          disabled={i === slides.length - 1}
           className="hud-label rounded-sm border border-line bg-petrol px-4 py-2 text-cream-dim transition hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-30"
         >
           Próximo ▶
