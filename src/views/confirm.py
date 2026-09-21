@@ -17,7 +17,7 @@ class ConfirmView(arcade.View):
         self.menu = Menu(["SIM", "NAO"], start_y=config.SCREEN_HEIGHT / 2 - 40)
 
     def on_draw(self) -> None:
-        self.clear(config.COLOR_BG)
+        ui.begin_frame(self)
         cx = config.SCREEN_WIDTH / 2
         arcade.draw_lbwh_rectangle_filled(cx - 380, config.SCREEN_HEIGHT / 2 - 120, 760, 260, config.COLOR_PANEL)
         arcade.draw_lbwh_rectangle_outline(cx - 380, config.SCREEN_HEIGHT / 2 - 120, 760, 260, config.COLOR_ACCENT, 2)

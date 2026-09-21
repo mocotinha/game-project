@@ -13,6 +13,8 @@ class ConfigurationView(arcade.View):
         self.settings = save_manager.load_settings()
         self.index = 0
         self.rows = [
+            ("Music", "music_enabled"),
+            ("Sound Effects", "sfx_enabled"),
             ("Music Volume", "music_volume"),
             ("Sound Volume", "sound_volume"),
             ("Fullscreen", "fullscreen"),
@@ -26,12 +28,12 @@ class ConfigurationView(arcade.View):
         self.message = ""
 
     def on_draw(self) -> None:
-        self.clear(config.COLOR_BG)
+        ui.begin_frame(self)
         cx = config.SCREEN_WIDTH / 2
         ui.label("CONFIGURATION", cx, config.SCREEN_HEIGHT - 80, config.COLOR_ACCENT, 34, anchor_x="center", bold=True)
-        top = config.SCREEN_HEIGHT - 170
+        top = config.SCREEN_HEIGHT - 150
         for i, (label, key) in enumerate(self.rows):
-            y = top - i * 56
+            y = top - i * 50
             active = i == self.index
             if active:
                 arcade.draw_lbwh_rectangle_filled(cx - 320, y - 12, 640, 42, (28, 44, 60))
@@ -76,7 +78,7 @@ class ConfigurationView(arcade.View):
         elif key == "text_size":
             i = (self.text_sizes.index(self.settings[key]) + direction) % len(self.text_sizes)
             self.settings[key] = self.text_sizes[i]
-        elif key in ("fullscreen", "subtitles", "high_contrast"):
+        elif key in ("fullscreen", "subtitles", "high_contrast", "music_enabled", "sfx_enabled"):
             self.settings[key] = not self.settings[key]
         save_manager.save_settings(self.settings)
         audio.reload_settings()
@@ -91,7 +93,7 @@ class ConfigurationView(arcade.View):
             for slot in range(1, save_manager.SLOT_COUNT + 1):
                 save_manager.delete_slot(slot)
             self.message = "Progresso reiniciado."
-        elif key in ("fullscreen", "subtitles", "high_contrast"):
+        elif key in ("fullscreen", "subtitles", "high_contrast", "music_enabled", "sfx_enabled"):
             self._adjust(1)
 
     def _back(self) -> None:

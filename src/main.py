@@ -9,8 +9,11 @@ from src.views.main_menu import MainMenuView
 def main() -> None:
     settings = save_manager.load_settings()
     window = arcade.Window(config.SCREEN_WIDTH, config.SCREEN_HEIGHT, config.SCREEN_TITLE)
+    window.center_window()
     if settings.get("fullscreen"):
         window.set_fullscreen(True)
+    else:
+        window.maximize()
     window.show_view(MainMenuView())
     arcade.run()
 

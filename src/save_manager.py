@@ -13,6 +13,8 @@ SLOT_COUNT = 3
 DEFAULT_SETTINGS: dict[str, Any] = {
     "music_volume": 0.6,
     "sound_volume": 0.8,
+    "music_enabled": True,
+    "sfx_enabled": True,
     "fullscreen": False,
     "subtitles": True,
     "text_size": "normal",

@@ -3,6 +3,7 @@ from __future__ import annotations
 import arcade
 
 from src import config, ui
+from src.audio import audio
 from src.content.missions import MISSIONS
 from src.content.roles import LEVEL_SUMMARY, ROLE_INFO, ROLE_ORDER
 
@@ -16,8 +17,11 @@ class JournalView(arcade.View):
         self.extra_stars = world_view.state.get("extra_stars", 0)
         self.sidequests = world_view.state.get("sidequests", {})
 
+    def on_show_view(self) -> None:
+        audio.play_sfx("map_indication")
+
     def on_draw(self) -> None:
-        self.clear(config.COLOR_BG)
+        ui.begin_frame(self)
         cx = config.SCREEN_WIDTH / 2
         ui.label("DIARIO DE CIDADANIA", cx, config.SCREEN_HEIGHT - 60, config.COLOR_ACCENT, 30, anchor_x="center", bold=True)
 

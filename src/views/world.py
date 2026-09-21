@@ -205,6 +205,7 @@ class WorldView(arcade.View):
         if eid not in ev:
             ev.append(eid)
             self._persist()
+            audio.play_sfx("earn_item")
             return True
         return False
 
@@ -309,7 +310,10 @@ class WorldView(arcade.View):
 
     # ---------- draw ----------
     def on_draw(self) -> None:
+        self.window.default_camera.use()
         self.clear(config.COLOR_BG)
+        ui.fit_world_camera(self.world_camera, self.window)
+        ui.fit_gui_camera(self.gui_camera, self.window)
         if self.location == "city":
             self.world_camera.use()
             self._draw_city()

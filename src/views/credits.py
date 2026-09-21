@@ -12,7 +12,7 @@ class CreditsView(arcade.View):
         self.previous = previous
 
     def on_draw(self) -> None:
-        self.clear(config.COLOR_BG)
+        ui.begin_frame(self)
         cx = config.SCREEN_WIDTH / 2
         arcade.draw_lbwh_rectangle_filled(0, config.SCREEN_HEIGHT - 150, config.SCREEN_WIDTH, 150, (23, 40, 40))
         ui.label("AURORA: QUEM DECIDE?", cx, config.SCREEN_HEIGHT - 80, config.COLOR_ACCENT, 40, anchor_x="center", bold=True)

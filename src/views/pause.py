@@ -19,7 +19,7 @@ class PauseView(arcade.View):
         self.message = ""
 
     def on_draw(self) -> None:
-        self.clear(config.COLOR_BG)
+        ui.begin_frame(self)
         cx = config.SCREEN_WIDTH / 2
         ui.label("PAUSA", cx, config.SCREEN_HEIGHT - 120, config.COLOR_ACCENT, 40, anchor_x="center", bold=True)
         self.menu.draw(cx)

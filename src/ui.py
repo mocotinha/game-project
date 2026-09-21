@@ -7,7 +7,55 @@ import arcade
 from arcade.gui import NinePatchTexture
 from arcade.types import LBWH
 
+from src import config
+
 _cache: dict[tuple, arcade.Text] = {}
+_gui_camera: arcade.camera.Camera2D | None = None
+
+
+def _letterbox(window) -> LBWH:
+    """Viewport que preserva a proporcao 1280x720, centralizada na janela real."""
+    scale = min(window.width / config.SCREEN_WIDTH, window.height / config.SCREEN_HEIGHT)
+    vw = config.SCREEN_WIDTH * scale
+    vh = config.SCREEN_HEIGHT * scale
+    return LBWH((window.width - vw) / 2, (window.height - vh) / 2, vw, vh)
+
+
+def gui_camera(window) -> arcade.camera.Camera2D:
+    """Camera fixa (mundo 1280x720) encaixada na janela, mantendo a UI centralizada."""
+    global _gui_camera
+    if _gui_camera is None:
+        _gui_camera = arcade.camera.Camera2D(
+            position=(0.0, 0.0),
+            projection=arcade.LRBT(0, config.SCREEN_WIDTH, 0, config.SCREEN_HEIGHT),
+            viewport=_letterbox(window),
+        )
+    else:
+        _gui_camera.viewport = _letterbox(window)
+    return _gui_camera
+
+
+def fit_gui_camera(camera: arcade.camera.Camera2D, window) -> None:
+    """Ajusta uma camera de HUD para o espaco fixo 1280x720 centralizado."""
+    camera.viewport = _letterbox(window)
+    camera.projection = arcade.LRBT(0, config.SCREEN_WIDTH, 0, config.SCREEN_HEIGHT)
+    camera.position = (0.0, 0.0)
+
+
+def fit_world_camera(camera: arcade.camera.Camera2D, window) -> None:
+    """Mantem a area visivel do mundo em 1280x720, centralizada na janela."""
+    camera.viewport = _letterbox(window)
+    camera.projection = arcade.LRBT(
+        -config.SCREEN_WIDTH / 2, config.SCREEN_WIDTH / 2,
+        -config.SCREEN_HEIGHT / 2, config.SCREEN_HEIGHT / 2,
+    )
+
+
+def begin_frame(view: arcade.View, color=config.COLOR_BG) -> None:
+    """Limpa a janela inteira e ativa a camera fixa de UI (menus centralizados)."""
+    view.window.default_camera.use()
+    view.clear(color)
+    gui_camera(view.window).use()
 
 UI_ROOT = Path(__file__).resolve().parents[1] / "assets" / "kenney" / "ui-pack" / "PNG"
 GEN_ROOT = Path(__file__).resolve().parents[1] / "assets" / "kenney" / "_generated"
