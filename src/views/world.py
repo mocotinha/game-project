@@ -11,7 +11,23 @@ from src.audio import audio
 from src.content.missions import MISSIONS, MISSIONS_BY_ID, STORY, Mission, next_mission
 from src.content.problems import PROBLEMS_BY_MISSION, Problem
 from src.content.sidequests import SIDEQUESTS, SIDEQUESTS_BY_GIVER, SIDEQUESTS_BY_MISSION
-from src.world import NPC, Building, Prop, build_city
+from src.world import (
+    NPC,
+    AREA_OF_BUILDING,
+    AREA_OF_REGION,
+    AREA_ORDER,
+    AREA_SPAWN,
+    AREA_TITLE,
+    ROAD_W,
+    ROADS_H,
+    ROADS_V,
+    Building,
+    Prop,
+    TravelPoint,
+    area_bounds,
+    area_of_point,
+    build_city,
+)
 from src.world.interiors import Interior, InteriorItem, build_interiors
 
 CHAR_SCALE = 0.5
@@ -40,13 +56,16 @@ VEHICLES = {
 # Mobiliario do Pixel Vehicle Pack.
 PACK_PROPS = {"trafficlight": "light_double", "streetlamp": "light", "lamp": "light", "roadsign": "sign_street", "barrier": "barrier"}
 FEMALE_NPCS = {"Dona Alzira", "Professora Ines", "Gari Rita", "Corredora Bia",
-               "Dona Vera", "Motorista Cida", "Ativista Rosa", "Servidora Dinah", "Cidada Marli"}
+               "Dona Vera", "Motorista Cida", "Ativista Rosa", "Servidora Dinah", "Cidada Marli",
+               "Mesaria Dulce", "Turista Lia", "Guia Celia", "Estudante Isa", "Lobista Nair"}
 # Perambulacao dos NPCs: area de ~9 m2 ao redor do ponto de origem.
 NPC_WANDER_RADIUS = 46.0
 NPC_SPEED = 42.0
-ROAD_X = (660, 1480, 2360)
-ROAD_Y = (900, 1560)
-ROAD_W = 80
+# Vias (geometria compartilhada em src.world); aliases para o calculo do chao.
+ROAD_X = tuple(ROADS_V)
+ROAD_Y = tuple(ROADS_H)
+ROAD_X_SPAN = ROADS_V
+ROAD_Y_SPAN = ROADS_H
 MM_W, MM_H = 250, 188
 RX, RY, RW, RH = 70, 120, 1140, 470
 
@@ -91,6 +110,16 @@ class WorldView(arcade.View):
         self.player_order = len(self.sprite_order)
         self._setup_sprites()
 
+        self.area = state.get("area") or area_of_point(self.city.regions, self.player_x, self.player_y)
+        if self.area not in AREA_ORDER:
+            self.area = "municipio"
+        self._classify_elements()
+        self._apply_area()
+        self._clamp_player_to_area()
+        self.world_camera.position = self._camera_target()
+
+        self._traveling: dict | None = None
+        self._travel_text: arcade.Text | None = None
         self.mode = Mode.EXPLORE
         self.dialogue_lines: list[str] = []
         self.dialogue_index = 0
@@ -193,6 +222,120 @@ class WorldView(arcade.View):
             sprite.center_y = problem.y + sprite.height / 2
             self.problem_sprites[problem.id] = sprite
 
+        # Onibus que marca cada ponto de viagem (saida e entrada dos ambientes).
+        self.travel_sprites: dict[int, arcade.Sprite] = {}
+        for travel in self.city.travels:
+            bus = arcade.Sprite(assets.vehicle_texture("bus"), scale=VEHICLE_SCALE)
+            bus.center_x = travel.x
+            bus.center_y = travel.y + bus.height / 2
+            self.travel_sprites[id(travel)] = bus
+
+    # ---------- ambientes (areas navegaveis) ----------
+    def _classify_elements(self) -> None:
+        """Atribui, uma vez, cada elemento a um ambiente (pela posicao de origem)."""
+        regs = self.city.regions
+        # NPCs de side quest seguem o ambiente da sua missao (evita ma classificacao em vaos).
+        sq_area: dict[str, str] = {}
+        for sq in SIDEQUESTS:
+            mission = MISSIONS_BY_ID.get(sq.mission_id)
+            if mission is None:
+                continue
+            sq_area[sq.giver] = mission.stage
+            for target in sq.targets:
+                sq_area[target] = mission.stage
+        self.prop_area = {}
+        for prop in self.city.props:
+            if prop.name.startswith("Arvore de borda "):
+                self.prop_area[id(prop)] = prop.name.rsplit(" ", 1)[1]
+            else:
+                self.prop_area[id(prop)] = area_of_point(regs, prop.x, prop.y)
+        self.npc_area = {
+            id(npc): sq_area.get(npc.name, area_of_point(regs, npc.x, npc.y))
+            for _, npc in self.npc_sprites
+        }
+        self.problem_area: dict[str, str] = {}
+        for p in self.city.problems:
+            mission = MISSIONS_BY_ID.get(p.mission_id)
+            self.problem_area[p.id] = mission.stage if mission else area_of_point(regs, p.x, p.y)
+
+    def _apply_area(self) -> None:
+        """Recalcula as listas visiveis/colididas e os limites do ambiente atual."""
+        a = self.area
+        self.cur_regions = [r for r in self.city.regions if AREA_OF_REGION.get(r.key) == a]
+        self.cur_buildings = [b for b in self.city.buildings if AREA_OF_BUILDING.get(b.key) == a]
+        self.cur_npc_sprites = [(s, n) for (s, n) in self.npc_sprites if self.npc_area.get(id(n)) == a]
+        self.cur_prop_sprites = [(s, p) for (s, p) in self.prop_sprites if self.prop_area.get(id(p)) == a]
+        self.cur_vector_props = [p for p in self.vector_props if self.prop_area.get(id(p)) == a]
+        self.cur_props = [p for p in self.city.props if self.prop_area.get(id(p)) == a]
+        self.cur_problems = [p for p in self.city.problems if self.problem_area.get(p.id) == a]
+        self.cur_travels = [t for t in self.city.travels if t.area == a]
+        self.map_x0, self.map_y0, self.map_x1, self.map_y1 = area_bounds(self.city.regions, a)
+
+    def _camera_target(self) -> tuple[float, float]:
+        half_w = config.SCREEN_WIDTH / 2
+        half_h = config.SCREEN_HEIGHT / 2
+        if self.map_x1 - self.map_x0 <= config.SCREEN_WIDTH:
+            cx = (self.map_x0 + self.map_x1) / 2
+        else:
+            cx = min(self.map_x1 - half_w, max(self.map_x0 + half_w, self.player_x))
+        if self.map_y1 - self.map_y0 <= config.SCREEN_HEIGHT:
+            cy = (self.map_y0 + self.map_y1) / 2
+        else:
+            cy = min(self.map_y1 - half_h, max(self.map_y0 + half_h, self.player_y))
+        return (cx, cy)
+
+    def _clamp_player_to_area(self) -> None:
+        self.player_x = min(self.map_x1 - 30, max(self.map_x0 + 30, self.player_x))
+        self.player_y = min(self.map_y1 - 30, max(self.map_y0 + 30, self.player_y))
+
+    def _travel_toward(self, dest: str) -> TravelPoint | None:
+        """Ponto de viagem do ambiente atual que avanca em direcao a ``dest``."""
+        if dest == self.area or dest not in AREA_ORDER:
+            return None
+        ci, di = AREA_ORDER.index(self.area), AREA_ORDER.index(dest)
+        nxt = AREA_ORDER[ci + 1] if di > ci else AREA_ORDER[ci - 1]
+        for t in self.cur_travels:
+            if t.dest == nxt:
+                return t
+        return self.cur_travels[0] if self.cur_travels else None
+
+    def _travel_to(self, dest: str) -> None:
+        if dest not in AREA_ORDER or self._traveling is not None:
+            return
+        audio.play_sfx("confirm")
+        self._persist()
+        self.held_keys.clear()
+        self.velocity_x = self.velocity_y = 0.0
+        # Efeito de tela: fade-out -> troca de ambiente -> fade-in.
+        self._traveling = {"t": 0.0, "dur": 1.1, "dest": dest, "origin": self.area, "switched": False}
+
+    def _update_travel(self, dt: float) -> None:
+        tv = self._traveling
+        if tv is None:
+            return
+        tv["t"] += dt
+        if not tv["switched"] and tv["t"] >= tv["dur"] / 2:
+            self._do_travel(tv["dest"], tv["origin"])
+            tv["switched"] = True
+        if tv["t"] >= tv["dur"]:
+            self._traveling = None
+
+    def _do_travel(self, dest: str, origin: str) -> None:
+        self.area = dest
+        self._apply_area()
+        back = next((t for t in self.cur_travels if t.dest == origin), None)
+        if back is not None:  # chega em frente ao onibus de volta (ao sul da estacao)
+            self.player_x = back.x
+            self.player_y = back.y - 80
+        else:
+            self.player_x, self.player_y = AREA_SPAWN.get(dest, (self.player_x, self.player_y))
+        self._clamp_player_to_area()
+        self.velocity_x = self.velocity_y = 0.0
+        self.world_camera.position = self._camera_target()
+        self.region_name = self._current_region()
+        self._persist()
+        self._queue_story(dest)
+
     # ---------- investigacao: provas, side quests ----------
     def _evidence(self) -> list:
         return self.state.setdefault("evidence", [])
@@ -220,22 +363,23 @@ class WorldView(arcade.View):
 
     # ---------- chao em tiles (top-down) ----------
     def _ground_kind(self, cx: float, cy: float) -> str:
-        on_v = any(vx <= cx <= vx + ROAD_W for vx in ROAD_X)
-        on_h = any(hy <= cy <= hy + ROAD_W for hy in ROAD_Y)
+        on_v = any(vx <= cx <= vx + ROAD_W and ROAD_X_SPAN[vx][0] <= cy <= ROAD_X_SPAN[vx][1] for vx in ROAD_X)
+        on_h = any(hy <= cy <= hy + ROAD_W and ROAD_Y_SPAN[hy][0] <= cx <= ROAD_Y_SPAN[hy][1] for hy in ROAD_Y)
         # Faixas de pedestre nas aproximacoes dos cruzamentos.
         if on_v:
             for hy in ROAD_Y:
-                if hy + ROAD_W < cy <= hy + ROAD_W + TILE or hy - TILE <= cy < hy:
+                if ROAD_Y_SPAN[hy][0] <= cx <= ROAD_Y_SPAN[hy][1] and (hy + ROAD_W < cy <= hy + ROAD_W + TILE or hy - TILE <= cy < hy):
                     return "crosswalk_h"
         if on_h:
             for vx in ROAD_X:
-                if vx + ROAD_W < cx <= vx + ROAD_W + TILE or vx - TILE <= cx < vx:
+                if ROAD_X_SPAN[vx][0] <= cy <= ROAD_X_SPAN[vx][1] and (vx + ROAD_W < cx <= vx + ROAD_W + TILE or vx - TILE <= cx < vx):
                     return "crosswalk_v"
         if on_v or on_h:
             return "road"
-        # Calcada margeando as vias.
+        # Calcada margeando as vias (respeitando o alcance de cada segmento).
         margin = 40
-        if any(vx - margin <= cx <= vx + ROAD_W + margin for vx in ROAD_X) or any(hy - margin <= cy <= hy + ROAD_W + margin for hy in ROAD_Y):
+        if any(vx - margin <= cx <= vx + ROAD_W + margin and ROAD_X_SPAN[vx][0] - margin <= cy <= ROAD_X_SPAN[vx][1] + margin for vx in ROAD_X) \
+                or any(hy - margin <= cy <= hy + ROAD_W + margin and ROAD_Y_SPAN[hy][0] - margin <= cx <= ROAD_Y_SPAN[hy][1] + margin for hy in ROAD_Y):
             return "sidewalk"
         # Calcada ao redor dos predios.
         for b in self.city.buildings:
@@ -332,30 +476,54 @@ class WorldView(arcade.View):
             self._draw_mission()
         elif self.mode == Mode.COMPLETE:
             self._draw_complete()
+        if self._traveling is not None:
+            self.gui_camera.use()
+            self._draw_travel_fx()
+
+    def _draw_travel_fx(self) -> None:
+        tv = self._traveling
+        if tv is None:
+            return
+        half = tv["dur"] / 2
+        if tv["t"] < half:
+            a = int(255 * min(1.0, tv["t"] / half))
+        else:
+            a = int(255 * max(0.0, 1.0 - (tv["t"] - half) / half))
+        arcade.draw_lbwh_rectangle_filled(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT, (6, 10, 16, a))
+        if self._travel_text is None:
+            self._travel_text = arcade.Text("Viajando de onibus...", config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2,
+                                            (240, 240, 232, a), 22, anchor_x="center", anchor_y="center", bold=True)
+        self._travel_text.color = (240, 240, 232, a)
+        self._travel_text.draw()
 
     def _draw_city(self) -> None:
         self.ground.draw(pixelated=True)
-        building_regions = {b.key for b in self.city.buildings if b.key}
-        for region in self.city.regions:
+        building_regions = {b.key for b in self.cur_buildings if b.key}
+        for region in self.cur_regions:
             if region.key in building_regions:
                 continue  # o nome do predio ja identifica a regiao
             ui.name_tag(region.label, region.x + region.width / 2, region.y + region.height - 26, (247, 238, 200), 15)
 
+        for travel in self.cur_travels:
+            self._draw_rodoviaria(travel)
+
         self._sync_city_actors()
         drawables: list[tuple[float, int, object]] = []
-        for b in self.city.buildings:
+        for b in self.cur_buildings:
             drawables.append((b.y + b.height, 0, b))
-        for sprite, npc in self.npc_sprites:
+        for sprite, npc in self.cur_npc_sprites:
             if self._npc_visible(npc):
                 drawables.append((npc.y, 1, sprite))
-        for sprite, prop in self.prop_sprites:
+        for sprite, prop in self.cur_prop_sprites:
             drawables.append((prop.y, 1, sprite))
-        for prop in self.vector_props:
+        for prop in self.cur_vector_props:
             drawables.append((prop.y, 2, prop))
-        for problem in self.city.problems:
+        for problem in self.cur_problems:
             sprite = self.problem_sprites[problem.id]
             sprite.texture = assets.vehicle_prop_texture("sign_blue" if self._problem_solved(problem) else "sign_red")
             drawables.append((problem.y, 1, sprite))
+        for travel in self.cur_travels:
+            drawables.append((travel.y, 1, self.travel_sprites[id(travel)]))
         drawables.append((self.player_y, 1, self.player_sprite))
         drawables.sort(key=lambda d: d[0], reverse=True)
         for _, kind, obj in drawables:
@@ -366,19 +534,22 @@ class WorldView(arcade.View):
             else:
                 self._draw_vector_prop(obj)
 
-        near = min((npc for _, npc in self.npc_sprites if self._dist(npc.x, npc.y) < 150 and self._npc_visible(npc)),
+        near = min((npc for _, npc in self.cur_npc_sprites if self._dist(npc.x, npc.y) < 150 and self._npc_visible(npc)),
                    key=lambda n: self._dist(n.x, n.y), default=None)
         if near is not None:
             ui.name_tag(near.name, near.x, near.y + 72, (255, 234, 150), 12)
             ui.name_tag(near.role, near.x, near.y + 58, (208, 226, 222), 10)
         ui.name_tag(self.state.get("player_name", "Joana").upper(), self.player_x, self.player_y + 72, config.COLOR_HIGHLIGHT, 12)
 
-        for problem in self.city.problems:
+        for problem in self.cur_problems:
             solved = self._problem_solved(problem)
             color = (150, 230, 160) if solved else (255, 176, 96)
             bob = math.sin(self.clock * 4) * 4
             ui.name_tag(problem.title, problem.x, problem.y + 66, color, 11)
             ui.label("OK" if solved else "!", problem.x, problem.y + 82 + bob, color, 16, anchor_x="center", bold=True)
+
+        for travel in self.cur_travels:
+            self._draw_travel_point(travel)
 
         self._draw_objective_beacon()
 
@@ -386,9 +557,45 @@ class WorldView(arcade.View):
         if target is not None and self.mode == Mode.EXPLORE:
             ui.label(target[2], target[0], target[1] + 74, config.COLOR_ACCENT, 12, anchor_x="center", bold=True)
 
+    def _draw_travel_point(self, travel: TravelPoint) -> None:
+        bob = math.sin(self.clock * 4) * 3
+        ui.name_tag("RODOVIARIA", travel.x, travel.y + 128, (255, 235, 180), 13)
+        ui.name_tag(travel.label, travel.x, travel.y + 112, (210, 230, 240), 10)
+        ui.label("Pegue o onibus (E)", travel.x, travel.y + 56 + bob, (150, 210, 235), 11, anchor_x="center", bold=True)
+
+    def _rodoviaria_width(self) -> float:
+        """Largura da estacao; cresce conforme o nivel do ambiente."""
+        return 120.0 + AREA_ORDER.index(self.area) * 40.0
+
+    def _draw_rodoviaria(self, travel: TravelPoint) -> None:
+        """Estrutura da rodoviaria; fica mais desenvolvida conforme o nivel do ambiente."""
+        x, y = travel.x, travel.y
+        level = AREA_ORDER.index(self.area) + 1
+        w = self._rodoviaria_width()
+        roof = {1: (96, 140, 165), 2: (150, 146, 104), 3: (176, 138, 116)}.get(level, (130, 130, 130))
+        arcade.draw_lbwh_rectangle_filled(x - w / 2, y - 26, w, 44, (92, 98, 106))
+        arcade.draw_lbwh_rectangle_filled(x - w / 2, y + 14, w, 6, (126, 134, 142))
+        if level >= 2:  # predio da estacao
+            arcade.draw_lbwh_rectangle_filled(x - w / 2 + 6, y + 20, w * 0.44, 60, (112, 104, 96))
+            arcade.draw_lbwh_rectangle_filled(x - w / 2 + 18, y + 44, 26, 24, (170, 200, 220))
+        if level >= 3:  # terminal maior com torre
+            arcade.draw_lbwh_rectangle_filled(x + 4, y + 20, w * 0.44, 92, (124, 114, 104))
+            arcade.draw_lbwh_rectangle_filled(x + 22, y + 52, 26, 24, (170, 200, 220))
+            arcade.draw_lbwh_rectangle_filled(x + w / 2 - 42, y + 112, 10, 48, (96, 96, 102))
+            arcade.draw_lbwh_rectangle_filled(x + w / 2 - 50, y + 154, 26, 8, (210, 120, 90))
+        for px in (x - w / 2 + 12, x + w / 2 - 12):
+            arcade.draw_lbwh_rectangle_filled(px - 5, y + 18, 10, 72, (72, 76, 82))
+        arcade.draw_lbwh_rectangle_filled(x - w / 2 - 8, y + 86, w + 16, 4, (40, 44, 50))
+        arcade.draw_lbwh_rectangle_filled(x - w / 2 - 8, y + 90, w + 16, 16, roof)
+
     def _objective_target(self) -> tuple[float, float, str] | None:
         mission = next_mission(self.state.get("completed_missions", []))
         if mission is None:
+            return None
+        if mission.stage != self.area:
+            travel = self._travel_toward(mission.stage)
+            if travel is not None:
+                return (travel.x, travel.y, "Viaje para " + AREA_TITLE.get(mission.stage, mission.stage))
             return None
         prob = PROBLEMS_BY_MISSION.get(mission.id)
         if prob is not None and not self._has_ev(f"{mission.id}:problema"):
@@ -450,7 +657,7 @@ class WorldView(arcade.View):
             arcade.draw_ellipse_outline(x, y + prop.height / 2, prop.width, prop.height, (36, 78, 104), 3)
 
     def _sync_city_actors(self) -> None:
-        for sprite, npc in self.npc_sprites:
+        for sprite, npc in self.cur_npc_sprites:
             frames = assets.person_frames(self._gender_for(npc.name))
             state = self.npc_state[id(npc)]
             if state["moving"]:
@@ -548,8 +755,11 @@ class WorldView(arcade.View):
     # ---------- HUD / minimap ----------
     def _draw_hud(self) -> None:
         arcade.draw_lbwh_rectangle_filled(0, config.SCREEN_HEIGHT - 54, config.SCREEN_WIDTH, 54, (12, 21, 32))
-        title = self.interior.title if self.location != "city" and self.interior else self.region_name
-        ui.label(f"AURORA  |  {title}", 20, config.SCREEN_HEIGHT - 38, config.COLOR_ACCENT, 16, bold=True)
+        if self.location != "city" and self.interior:
+            title = self.interior.title
+        else:
+            title = f"{AREA_TITLE.get(self.area, 'AURORA')}  |  {self.region_name}"
+        ui.label(title, 20, config.SCREEN_HEIGHT - 38, config.COLOR_ACCENT, 16, bold=True)
         target = self._objective_target()
         objective = "Objetivo: " + target[2] if target is not None else "Todas as missoes concluidas!"
         ui.label(objective, config.SCREEN_WIDTH / 2, 16, config.COLOR_TEXT, 13, anchor_x="center")
@@ -598,35 +808,39 @@ class WorldView(arcade.View):
     def _draw_minimap(self) -> None:
         mx = config.SCREEN_WIDTH - MM_W - 16
         my = 78
-        sx = MM_W / config.MAP_WIDTH
-        sy = MM_H / config.MAP_HEIGHT
+        area_w = max(1.0, self.map_x1 - self.map_x0)
+        area_h = max(1.0, self.map_y1 - self.map_y0)
+        sx = MM_W / area_w
+        sy = MM_H / area_h
+        ox, oy = self.map_x0, self.map_y0
         arcade.draw_lbwh_rectangle_filled(mx - 6, my - 6, MM_W + 12, MM_H + 26, (10, 18, 27))
         arcade.draw_lbwh_rectangle_outline(mx - 6, my - 6, MM_W + 12, MM_H + 26, config.COLOR_ACCENT, 1)
-        ui.label("problema", mx + 2, my + MM_H + 5, (255, 176, 96), 9, bold=True)
-        ui.label("morador", mx + 90, my + MM_H + 5, (120, 220, 255), 9, bold=True)
-        ui.label("cargo", mx + 176, my + MM_H + 5, (255, 132, 110), 9, bold=True)
+        ui.label(AREA_TITLE.get(self.area, "AURORA"), mx + 2, my + MM_H + 5, config.COLOR_ACCENT, 9, bold=True)
+        ui.label("onibus", mx + MM_W - 42, my + MM_H + 5, (150, 210, 235), 9, bold=True)
         arcade.draw_lbwh_rectangle_filled(mx, my, MM_W, MM_H, (34, 66, 58))
-        for region in self.city.regions:
-            arcade.draw_lbwh_rectangle_filled(mx + region.x * sx, my + region.y * sy, region.width * sx, region.height * sy, region.floor)
-        for b in self.city.buildings:
+        for region in self.cur_regions:
+            arcade.draw_lbwh_rectangle_filled(mx + (region.x - ox) * sx, my + (region.y - oy) * sy, region.width * sx, region.height * sy, region.floor)
+        for b in self.cur_buildings:
             color = config.COLOR_OK if b.key else (210, 200, 170)
-            arcade.draw_lbwh_rectangle_filled(mx + b.x * sx, my + b.y * sy, max(3, b.width * sx), max(3, b.height * sy), color)
+            arcade.draw_lbwh_rectangle_filled(mx + (b.x - ox) * sx, my + (b.y - oy) * sy, max(3, b.width * sx), max(3, b.height * sy), color)
+        for travel in self.cur_travels:
+            self._minimap_marker(mx + (travel.x - ox) * sx, my + (travel.y - oy) * sy, (150, 210, 235))
         px, py = self.world_camera.position
-        arcade.draw_lbwh_rectangle_outline(mx + (px - config.SCREEN_WIDTH / 2) * sx, my + (py - config.SCREEN_HEIGHT / 2) * sy, config.SCREEN_WIDTH * sx, config.SCREEN_HEIGHT * sy, (255, 255, 255), 1)
-        arcade.draw_circle_filled(mx + self.player_x * sx, my + self.player_y * sy, 4, config.COLOR_HIGHLIGHT)
+        arcade.draw_lbwh_rectangle_outline(mx + (px - config.SCREEN_WIDTH / 2 - ox) * sx, my + (py - config.SCREEN_HEIGHT / 2 - oy) * sy, config.SCREEN_WIDTH * sx, config.SCREEN_HEIGHT * sy, (255, 255, 255), 1)
+        arcade.draw_circle_filled(mx + (self.player_x - ox) * sx, my + (self.player_y - oy) * sy, 4, config.COLOR_HIGHLIGHT)
         mission = next_mission(self.state.get("completed_missions", []))
-        if mission is not None:
+        if mission is not None and mission.stage == self.area:
             prob = PROBLEMS_BY_MISSION.get(mission.id)
             if prob is not None and not self._has_ev(f"{mission.id}:problema"):
-                self._minimap_marker(mx + prob.x * sx, my + prob.y * sy, (255, 176, 96))
+                self._minimap_marker(mx + (prob.x - ox) * sx, my + (prob.y - oy) * sy, (255, 176, 96))
             sq = SIDEQUESTS_BY_MISSION.get(mission.id)
             if sq is not None and not self._has_ev(f"{mission.id}:testemunho"):
                 giver = next((n for n in self.city.npcs if n.name == sq.giver), None)
                 if giver is not None:
-                    self._minimap_marker(mx + giver.x * sx, my + giver.y * sy, (120, 220, 255))
+                    self._minimap_marker(mx + (giver.x - ox) * sx, my + (giver.y - oy) * sy, (120, 220, 255))
             target = self._target_building()
             if target is not None:
-                self._minimap_marker(mx + (target.x + target.width / 2) * sx, my + (target.y + target.height / 2) * sy, (255, 132, 110))
+                self._minimap_marker(mx + (target.x + target.width / 2 - ox) * sx, my + (target.y + target.height / 2 - oy) * sy, (255, 132, 110))
 
     def _minimap_marker(self, x: float, y: float, color: tuple[int, int, int]) -> None:
         pulse = 3 + 2 * (math.sin(self.clock * 5) + 1)
@@ -671,16 +885,25 @@ class WorldView(arcade.View):
 
     def _draw_complete(self) -> None:
         mission = self.active_mission
-        self._panel(210)
-        ui.label("MISSAO CONCLUIDA", 95, 250, config.COLOR_ACCENT, 22, bold=True)
+        self._panel(250)
+        ui.label("MISSAO CONCLUIDA", 95, 290, config.COLOR_ACCENT, 22, bold=True)
         if mission is not None:
-            ui.label(mission.success, 95, 200, config.COLOR_TEXT, 16, width=900, multiline=True)
-            ui.label(mission.lesson, 95, 150, config.COLOR_TEXT_SOFT, 13, width=900, multiline=True)
-        ui.label("Enter para continuar", 95, 108, config.COLOR_TEXT_SOFT, 12)
+            ui.label(mission.success, 95, 242, config.COLOR_TEXT, 16, width=900, multiline=True)
+            ui.label(mission.lesson, 95, 196, config.COLOR_TEXT_SOFT, 13, width=900, multiline=True)
+        nxt = next_mission(self.state.get("completed_missions", []))
+        if nxt is not None and nxt.stage != self.area:
+            ui.label(f"Proxima etapa em outro ambiente: va a RODOVIARIA e pegue o onibus para {AREA_TITLE.get(nxt.stage, nxt.stage)}.",
+                     95, 150, config.COLOR_ACCENT, 14, width=900, multiline=True)
+        elif nxt is None:
+            ui.label("Voce concluiu a jornada por todos os niveis de governo!", 95, 150, config.COLOR_OK, 14, width=900, multiline=True)
+        ui.label("Enter para continuar", 95, 112, config.COLOR_TEXT_SOFT, 12)
 
     # ---------- update ----------
     def on_update(self, delta_time: float) -> None:
         self.clock += delta_time
+        if self._traveling is not None:
+            self._update_travel(delta_time)
+            return
         if self.mode == Mode.EXPLORE:
             self._update_movement(delta_time)
             if self.location == "city":
@@ -691,7 +914,7 @@ class WorldView(arcade.View):
 
     def _update_npcs(self, dt: float) -> None:
         """NPCs perambulam aleatoriamente em ~9 m2; congelam fora do modo EXPLORE."""
-        for _, npc in self.npc_sprites:
+        for _, npc in self.cur_npc_sprites:
             state = self.npc_state[id(npc)]
             if state["moving"]:
                 dx, dy = state["tx"] - npc.x, state["ty"] - npc.y
@@ -750,12 +973,12 @@ class WorldView(arcade.View):
             self.player_sprite.texture = frames["idle_" + side]
 
     def _move_city(self, dx: float, dy: float) -> None:
-        nx = min(config.MAP_WIDTH - 30, max(30, self.player_x + dx))
+        nx = min(self.map_x1 - 30, max(self.map_x0 + 30, self.player_x + dx))
         if not self._blocked(nx, self.player_y, dx, 0):
             self.player_x = nx
         else:
             self.velocity_x = 0
-        ny = min(config.MAP_HEIGHT - 30, max(30, self.player_y + dy))
+        ny = min(self.map_y1 - 30, max(self.map_y0 + 30, self.player_y + dy))
         if not self._blocked(self.player_x, ny, 0, dy):
             self.player_y = ny
         else:
@@ -767,10 +990,15 @@ class WorldView(arcade.View):
 
     def _blocked(self, x: float, y: float, dx: float, dy: float) -> bool:
         # Colisao com todo o footprint do predio (visao top-down); a porta fica ao sul (livre).
-        for b in self.city.buildings:
+        for b in self.cur_buildings:
             if b.x - 6 < x < b.x + b.width + 6 and b.y - 2 < y < b.y + b.height + 6:
                 return True
-        for prop in self.city.props:
+        # Colisao com a estacao de onibus: nao se anda por cima do teto (acesso pelo sul).
+        rw = self._rodoviaria_width()
+        for t in self.cur_travels:
+            if t.x - rw / 2 - 8 < x < t.x + rw / 2 + 8 and t.y <= y < t.y + 112:
+                return True
+        for prop in self.cur_props:
             if not prop.solid:
                 continue
             if abs(prop.x - x) < prop.width / 2 + 20 and abs(prop.y - y) < prop.height / 2 + 20:
@@ -783,9 +1011,9 @@ class WorldView(arcade.View):
         return False
 
     def _prop_overlaps(self, x: float, y: float, moving: Prop) -> bool:
-        if not (20 < x < config.MAP_WIDTH - 20 and 20 < y < config.MAP_HEIGHT - 20):
+        if not (self.map_x0 + 20 < x < self.map_x1 - 20 and self.map_y0 + 20 < y < self.map_y1 - 20):
             return True
-        for other in self.city.props:
+        for other in self.cur_props:
             if other is moving:
                 continue
             if abs(other.x - x) < (other.width + moving.width) / 2 and abs(other.y - y) < (other.height + moving.height) / 2:
@@ -793,30 +1021,29 @@ class WorldView(arcade.View):
         return False
 
     def _update_camera(self) -> None:
-        half_w = config.SCREEN_WIDTH / 2
-        half_h = config.SCREEN_HEIGHT / 2
-        cx = min(config.MAP_WIDTH - half_w, max(half_w, self.player_x))
-        cy = min(config.MAP_HEIGHT - half_h, max(half_h, self.player_y))
+        cx, cy = self._camera_target()
         px, py = self.world_camera.position
         self.world_camera.position = (px + (cx - px) * 0.15, py + (cy - py) * 0.15)
 
     def _current_region(self) -> str:
-        for region in self.city.regions:
+        for region in self.cur_regions:
             if region.x <= self.player_x <= region.x + region.width and region.y <= self.player_y <= region.y + region.height:
                 return region.label
-        return "AURORA"
+        return AREA_TITLE.get(self.area, "AURORA")
 
     def _target_building(self) -> Building | None:
         mission = next_mission(self.state.get("completed_missions", []))
         if mission is None:
             return None
-        for b in self.city.buildings:
+        for b in self.cur_buildings:
             if b.key == mission.region_key:
                 return b
         return None
 
     # ---------- input ----------
     def on_key_press(self, key: int, modifiers: int) -> None:
+        if self._traveling is not None:
+            return
         if key == arcade.key.ESCAPE:
             if self.mode in (Mode.DIALOGUE, Mode.MISSION, Mode.COMPLETE, Mode.STORY):
                 self.mode = Mode.EXPLORE
@@ -861,22 +1088,26 @@ class WorldView(arcade.View):
     def _city_interact_target(self) -> tuple[float, float, str] | None:
         best = None
         best_d = 1e9
-        for b in self.city.buildings:
+        for b in self.cur_buildings:
             if not b.key:
                 continue
             d = self._dist(b.door_x, b.door_y)
             if d < 100 and d < best_d:
                 best, best_d = (b.door_x, b.door_y + 20, "E entrar"), d
-        for n in self.city.npcs:
+        for _, n in self.cur_npc_sprites:
             if not self._npc_visible(n):
                 continue
             d = self._dist(n.x, n.y)
             if d < 120 and d < best_d:
                 best, best_d = (n.x, n.y, "E conversar"), d
-        for p in self.city.problems:
+        for p in self.cur_problems:
             d = self._dist(p.x, p.y)
             if d < 90 and d < best_d:
                 best, best_d = (p.x, p.y, "E investigar"), d
+        for t in self.cur_travels:
+            d = self._dist(t.x, t.y)
+            if d < 100 and d < best_d:
+                best, best_d = (t.x, t.y + 10, "E viajar"), d
         return best
 
     def _interior_target(self) -> tuple[float, float, str] | None:
@@ -906,15 +1137,18 @@ class WorldView(arcade.View):
 
     def _interact_city(self) -> None:
         opts: list[tuple[float, str, object]] = []
-        for b in self.city.buildings:
+        for b in self.cur_buildings:
             if b.key and self._dist(b.door_x, b.door_y) < 100:
                 opts.append((self._dist(b.door_x, b.door_y), "door", b))
-        for n in self.city.npcs:
+        for _, n in self.cur_npc_sprites:
             if self._npc_visible(n) and self._dist(n.x, n.y) < 120:
                 opts.append((self._dist(n.x, n.y), "npc", n))
-        for p in self.city.problems:
+        for p in self.cur_problems:
             if self._dist(p.x, p.y) < 90:
                 opts.append((self._dist(p.x, p.y), "problem", p))
+        for t in self.cur_travels:
+            if self._dist(t.x, t.y) < 100:
+                opts.append((self._dist(t.x, t.y), "travel", t))
         if not opts:
             return
         opts.sort(key=lambda t: t[0])
@@ -923,6 +1157,8 @@ class WorldView(arcade.View):
             self._enter_interior(obj.key)
         elif kind == "npc":
             self._talk_to(obj)
+        elif kind == "travel":
+            self._travel_to(obj.dest)
         else:
             self._investigate(obj)
 
@@ -1113,6 +1349,7 @@ class WorldView(arcade.View):
         if self.location == "city":
             self.state["position"] = {"x": self.player_x, "y": self.player_y}
             self.state["region"] = self._current_region().lower().replace(" ", "_")
+            self.state["area"] = self.area
         save_manager.save_slot(self.slot, self.state)
 
     def _open_pause(self) -> None:

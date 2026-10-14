@@ -1281,6 +1281,537 @@ function V2Encerramento() {
   )
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   APRESENTAÇÃO 3 — NARRATIVA, PERSONAGENS E MUNDO
+   Narratologia aplicada ao jogo + propostas de evolução.
+   Referências: Nakamura (MAC5784 · Narrativas em jogos digitais);
+   Isbister — Better Game Characters by Design; Zimmerman — Narrative,
+   Interactivity, Play, and Games.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── V3 · SLIDE 1 — Capa ─────────────────────────────────────── */
+function V3Cover() {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-ink">
+      <img src="/game/municipio.png" alt="Município de Aurora" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" />
+
+      <div className="absolute bottom-[12%] right-[7%] h-32 w-24 floaty">
+        <Joana className="h-full w-full" />
+      </div>
+      <div className="absolute right-[26%] top-[16%] h-14 w-14 floaty" style={{ animationDelay: "0.4s" }}>
+        <Camara className="h-full w-full" />
+      </div>
+      <div className="absolute right-[14%] top-[30%] h-14 w-14 floaty" style={{ animationDelay: "0.8s" }}>
+        <Prefeitura className="h-full w-full" />
+      </div>
+
+      <div className="relative flex h-full flex-col justify-center px-14">
+        <Tag tone="gold">◆ Narratologia aplicada · do enredo à emoção</Tag>
+        <h1 className="mt-4 font-display text-[3.4rem] font-extrabold leading-[0.95] tracking-tight text-cream">
+          Narrativa, <span className="text-gold">Personagens</span> e Mundo
+        </h1>
+        <p className="mt-3 max-w-xl text-lg leading-snug text-cream-dim">
+          Joana acaba de <span className="text-cream">tirar o primeiro título de eleitora</span> e percorre três ambientes
+          navegáveis para descobrir <span className="text-gold">quem decide</span> cada problema.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Tag>Enredo · Personagens</Tag>
+          <Tag tone="cream">Narrador · Ambientação</Tag>
+          <Tag tone="gold">Implementado no jogo</Tag>
+        </div>
+        <p className="mt-7 max-w-lg text-xs leading-relaxed text-slate">
+          Referências: Nakamura (MAC5784) · Isbister, <span className="italic">Better Game Characters by Design</span> ·
+          Zimmerman, <span className="italic">Narrative, Interactivity, Play, and Games</span>.
+        </p>
+      </div>
+
+      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8">
+        <span className="hud-label text-gold">Aurora: Quem Decide?</span>
+        <span className="hud-label text-slate">MAC5784 (2026) · Educativo · Não partidário · Fictício</span>
+      </div>
+    </div>
+  )
+}
+
+/* ── V3 · SLIDE 2 — Elementos da narratologia ────────────────── */
+function V3Narratologia() {
+  const els = [
+    { icon: "🕰️", t: "Ambientação", s: "tempo e espaço", d: "Aurora do Brasil, no presente: praça, Câmara, Prefeitura e capitais.", a: "emerald" as const },
+    { icon: "🧑", t: "Personagens", s: "protagonista + elenco", d: "Joana (avatar da jogadora) e os cargos públicos como NPCs.", a: "gold" as const },
+    { icon: "🎙️", t: "Narrador", s: "quem conta", d: "Diálogos dos NPCs, o cenário que fala e o Diário de Cidadania.", a: "emerald" as const },
+    { icon: "📈", t: "Enredo", s: "sequência de eventos", d: "Do primeiro título à jornada pelos três níveis de governo.", a: "gold" as const },
+  ]
+  return (
+    <Slide n={2} kicker="Narratologia · os quatro elementos">
+      <div className="flex h-full flex-col">
+        <Heading sub="Partimos dos elementos clássicos da narrativa (Nakamura) e os mapeamos ao que o jogo entrega.">
+          O que compõe a <span className="text-gold">narrativa de Aurora</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-[1.25fr_1fr] gap-5">
+          <div className="grid grid-cols-2 gap-4">
+            {els.map((e) => (
+              <Card key={e.t} accent={e.a} className="flex flex-col justify-center">
+                <span className="text-4xl">{e.icon}</span>
+                <p className="mt-2 font-display text-lg font-bold text-cream">{e.t}</p>
+                <span className={`hud-label ${e.a === "gold" ? "text-gold" : "text-emerald"}`}>{e.s}</span>
+                <p className="mt-1.5 text-sm leading-snug text-cream-dim">{e.d}</p>
+              </Card>
+            ))}
+          </div>
+          <div className="flex flex-col overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/abertura.png" alt="Abertura — Joana tira o título" className="h-full w-full object-cover" />
+            <p className="shrink-0 px-3 py-2 text-xs text-cream-dim">
+              A narrativa é <span className="text-emerald">tecida, não pregada</span>: emerge das missões, dos testemunhos e do cenário.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 3 — Enredo: o primeiro título ────────────────── */
+function V3Enredo() {
+  return (
+    <Slide n={3} kicker="Enredo · o incidente que inicia a história">
+      <div className="flex h-full flex-col">
+        <Heading sub="O gancho dramático liga a história diretamente ao exercício da cidadania.">
+          Tudo começa com o <span className="text-gold">primeiro título de eleitora</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-[1.15fr_1fr] gap-5">
+          <div className="flex flex-col gap-3">
+            <DialogBox speaker="Logline" color="emerald" avatar={<Joana className="h-full w-full" />}>
+              Joana acaba de tirar o primeiro título de eleitora em Aurora do Brasil. Com o documento na mão, quer entender
+              o que significa, na prática, exercer a cidadania — e começa a descobrir quem decide cada problema.
+            </DialogBox>
+            <div className="grid flex-1 grid-cols-2 gap-3">
+              <Card accent="gold" className="flex flex-col justify-center">
+                <p className="hud-label text-gold">Novo poder</p>
+                <p className="mt-1 text-sm leading-snug text-cream">Votar — escolher representantes.</p>
+              </Card>
+              <Card accent="emerald" className="flex flex-col justify-center">
+                <p className="hud-label text-emerald">Novo dever</p>
+                <p className="mt-1 text-sm leading-snug text-cream">Fiscalizar, cobrar e participar.</p>
+              </Card>
+              <Card accent="emerald" className="col-span-2 flex items-center gap-3">
+                <span className="text-3xl">🪪</span>
+                <p className="text-sm leading-snug text-cream-dim">
+                  O título é a <span className="text-gold">ruptura do equilíbrio</span>: a pergunta "e agora, o que faço com isso?"
+                  impulsiona toda a investigação.
+                </p>
+              </Card>
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/abertura.png" alt="Joana tira o primeiro título de eleitora" className="h-full w-full object-cover" />
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 4 — Arco (equilíbrio de Todorov) ─────────────── */
+function V3Arco() {
+  const eq = [
+    { n: "1", icon: "🪪", t: "Equilíbrio", d: "Joana tira o primeiro título." },
+    { n: "2", icon: "❓", t: "Ruptura", d: "Novo poder e dever: o que fazer com isso?" },
+    { n: "3", icon: "🔍", t: "Reconhecimento", d: "Decide investigar quem decide." },
+    { n: "4", icon: "🚌", t: "Jornada", d: "Percorre município, estado e União." },
+    { n: "5", icon: "🗳️", t: "Novo equilíbrio", d: "Cidadã ativa: sabe cobrar e participar." },
+  ]
+  return (
+    <Slide n={4} kicker="Estrutura · equilíbrio de Todorov / três atos">
+      <div className="flex h-full flex-col">
+        <Heading sub="O enredo é uma quebra e restauração de equilíbrio — agora ancorada no exercício da cidadania.">
+          Do <span className="text-emerald">"tirei o título"</span> ao <span className="text-gold">"sei como participar"</span>
+        </Heading>
+        <div className="flex flex-1 items-stretch gap-2">
+          {eq.map((s, i) => (
+            <div key={s.t} className="flex flex-1 items-center gap-2">
+              <Card accent={i === eq.length - 1 ? "gold" : "emerald"} className="flex h-full flex-1 flex-col justify-between">
+                <span className="font-pixel text-[0.55rem] text-gold">0{s.n}</span>
+                <div className="grid flex-1 place-items-center py-1">
+                  <span className="text-5xl leading-none">{s.icon}</span>
+                </div>
+                <div>
+                  <p className="font-display text-sm font-bold text-cream">{s.t}</p>
+                  <p className="mt-1 text-xs leading-tight text-cream-dim">{s.d}</p>
+                </div>
+              </Card>
+              {i < eq.length - 1 && <span className="text-emerald">→</span>}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-4">
+          {[
+            { lvl: "municipio" as const, t: "Ato 1 · Município", d: "Perto de casa: vereador e prefeita." },
+            { lvl: "estado" as const, t: "Ato 2 · Estado", d: "Grandes demais p/ um município: deputado estadual e governador." },
+            { lvl: "uniao" as const, t: "Ato 3 · União", d: "Leis do país: deputados, senadores e presidente." },
+          ].map((a) => (
+            <Card key={a.t} accent="gold" className="flex items-center gap-3">
+              <LevelBadge level={a.lvl} className="h-9 w-9 shrink-0" />
+              <div>
+                <p className="font-display text-sm font-bold text-cream">{a.t}</p>
+                <p className="mt-0.5 text-xs leading-tight text-cream-dim">{a.d}</p>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 5 — Personagens ──────────────────────────────── */
+function V3Personagens() {
+  const npcs = [
+    { n: "Caio Bairro", r: "Vereador", l: "municipio" as const },
+    { n: "Marina Prado", r: "Prefeita", l: "municipio" as const },
+    { n: "Lia Campos", r: "Dep. Estadual", l: "estado" as const },
+    { n: "Raul Nogueira", r: "Governador", l: "estado" as const },
+    { n: "Helena Norte", r: "Senadora", l: "uniao" as const },
+    { n: "Lúcio Silva", r: "Presidente", l: "uniao" as const },
+  ]
+  return (
+    <Slide n={5} kicker="Personagens · avatar e elenco">
+      <div className="flex h-full flex-col">
+        <Heading sub="A protagonista é um avatar habitável (Isbister): a jogadora projeta-se nela nos níveis visceral, cognitivo, social e de fantasia cívica.">
+          Quem <span className="text-gold">habita</span> Aurora
+        </Heading>
+        <div className="grid flex-1 grid-cols-[0.9fr_1.1fr_1fr] gap-4">
+          <Card accent="gold" className="flex flex-col items-center justify-center text-center">
+            <div className="h-24 w-16">
+              <Joana className="h-full w-full" />
+            </div>
+            <p className="mt-2 font-display text-xl font-extrabold text-cream">Joana</p>
+            <p className="hud-label text-gold">protagonista · avatar</p>
+            <p className="mt-2 text-sm text-cream-dim">
+              Nova eleitora. Ponto de vista da jogadora: aprende competência institucional agindo, não decorando.
+            </p>
+          </Card>
+          <div className="grid grid-cols-1 content-center gap-2.5">
+            {npcs.map((c) => (
+              <div key={c.n} className="flex items-center gap-3 rounded-sm border border-line bg-petrol/50 px-3 py-2">
+                <LevelBadge level={c.l} className="h-8 w-8 shrink-0" />
+                <div>
+                  <p className="font-display text-sm font-bold text-cream">{c.n}</p>
+                  <p className="hud-label text-emerald">{c.r}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/interior.png" alt="Interior da Câmara com o vereador" className="h-full w-full object-cover" />
+            <p className="shrink-0 px-3 py-2 text-xs text-cream-dim">
+              Cada cargo tem voz e temperamento próprios (traços legíveis / <span className="text-gold">OCEAN</span>).
+            </p>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 6 — Papéis sociais de NPCs ───────────────────── */
+function V3PapeisSociais() {
+  const rows = [
+    { papel: "Mentor", quem: "Vereador, prefeita e demais cargos", como: "Ensinam atribuições; dão missões e feedback.", a: "gold" as const },
+    { papel: "Guia", quem: "Diário de Cidadania", como: "Base de consulta: o que cada cargo faz e não faz.", a: "emerald" as const },
+    { papel: "Aliado", quem: "Moradores (side quests)", como: "Testemunhos; apoio que vira prova e estrela.", a: "emerald" as const },
+    { papel: "Informante", quem: "Servidores e recepção", como: "Trocam informação por atenção do jogador.", a: "gold" as const },
+    { papel: "Figuração viva", quem: "Multidão da capital", como: "Densidade que caracteriza o ambiente.", a: "emerald" as const },
+  ]
+  return (
+    <Slide n={6} kicker="Papéis sociais dos NPCs · Isbister (cap. 9)">
+      <div className="flex h-full flex-col">
+        <Heading sub="Cada NPC ocupa um papel social que cria expectativas e momentos de interação definidores.">
+          NPCs como <span className="text-gold">papéis sociais</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-[1.4fr_1fr] gap-5">
+          <div className="grid content-center gap-2.5">
+            {rows.map((r) => (
+              <Card key={r.papel} accent={r.a} className="flex items-center gap-4 py-2.5">
+                <span className="w-32 shrink-0 font-display text-base font-bold text-cream">{r.papel}</span>
+                <span className="w-56 shrink-0 text-sm text-gold">{r.quem}</span>
+                <span className="h-6 w-px bg-line" />
+                <span className="text-sm text-cream-dim">{r.como}</span>
+              </Card>
+            ))}
+          </div>
+          <div className="flex flex-col overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/uniao.png" alt="Multidão na capital federal" className="h-full w-full object-cover" />
+            <p className="shrink-0 px-3 py-2 text-xs text-cream-dim">
+              A <span className="text-gold">multidão da capital</span> é figuração viva: o papel social do ambiente.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 7 — Narrador ─────────────────────────────────── */
+function V3Narrador() {
+  const tipos = [
+    { icon: "💬", t: "Narrador diegético", d: "Os próprios NPCs contam o problema e a função do cargo.", a: "emerald" as const },
+    { icon: "🏚️", t: "Environmental storytelling", d: "Terreno vazio, praça sem manutenção, hospital lotado: o cenário narra o problema.", a: "gold" as const },
+    { icon: "📖", t: "Narrador interativo", d: "O Diário de Cidadania responde ao que a jogadora investiga e coleta.", a: "emerald" as const },
+  ]
+  return (
+    <Slide n={7} kicker="Narrador · quem (e o quê) conta a história">
+      <div className="flex h-full flex-col">
+        <Heading sub="Aurora usa três vozes narrativas que se reforçam.">
+          O cenário também <span className="text-gold">narra</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-[1fr_1fr_1fr_1.1fr] gap-4">
+          {tipos.map((t) => (
+            <Card key={t.t} accent={t.a} className="flex flex-col justify-center">
+              <span className="text-4xl">{t.icon}</span>
+              <p className="mt-2 font-display text-base font-bold text-cream">{t.t}</p>
+              <p className="mt-1.5 text-sm leading-snug text-cream-dim">{t.d}</p>
+            </Card>
+          ))}
+          <div className="flex flex-col overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/problema.png" alt="Problema sinalizado no mapa" className="h-full w-full object-cover" />
+            <p className="shrink-0 px-3 py-2 text-xs text-cream-dim">O marcador no mapa já conta o problema antes do diálogo.</p>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 8 — Mundo: três ambientes navegáveis ─────────── */
+function V3Mundo() {
+  const envs = [
+    { img: "/game/municipio.png", t: "Município de Aurora", d: "Calmo e próximo: praça, Câmara, Prefeitura.", dots: 3 },
+    { img: "/game/estado.png", t: "Capital do Estado", d: "Médio porte: Assembleia e Palácio do Governo.", dots: 5 },
+    { img: "/game/uniao.png", t: "Capital Federal", d: "Movimentada: Congresso, multidão e trânsito.", dots: 9 },
+  ]
+  return (
+    <Slide n={8} kicker="Ambientação · o lugar é o argumento">
+      <div className="flex h-full flex-col">
+        <Heading sub="De um mapa único para três ambientes separados e navegáveis — a densidade de cada um ensina antes de qualquer diálogo.">
+          Três <span className="text-gold">ambientes navegáveis</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-3 gap-4">
+          {envs.map((e) => (
+            <div key={e.t} className="flex flex-col overflow-hidden rounded-md border border-line bg-petrol/50">
+              <img src={e.img} alt={e.t} className="h-40 w-full object-cover" />
+              <div className="flex flex-1 flex-col gap-1 px-3 py-2.5">
+                <p className="font-display text-base font-bold text-cream">{e.t}</p>
+                <p className="text-xs leading-snug text-cream-dim">{e.d}</p>
+                <div className="mt-auto flex items-center gap-1">
+                  {Array.from({ length: 9 }).map((_, i) => (
+                    <span key={i} className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: i < e.dots ? "#f5c451" : "#2a4a44" }} />
+                  ))}
+                  <span className="ml-1 hud-label text-slate">movimento</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-center text-sm text-cream-dim">
+          Bordas arborizadas e densidade crescente: a mudança de <span className="text-emerald">ritmo e multidão</span> é, em si,
+          environmental storytelling e <span className="text-gold">game feel</span>.
+        </p>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 9 — Viagem entre ambientes ───────────────────── */
+function V3Viagem() {
+  const steps = [
+    { icon: "🚏", t: "Rodoviária", d: "Pontos de ônibus sobre a avenida, sem outras interações." },
+    { icon: "🎟️", t: "Pegar o ônibus (E)", d: "A viagem só acontece ao embarcar na estação." },
+    { icon: "🎬", t: "Fade de viagem", d: "Transição de tela dá a sensação de deslocamento." },
+    { icon: "🏙️", t: "Chegada", d: "Desembarque em frente ao ônibus de volta, no novo ambiente." },
+  ]
+  return (
+    <Slide n={9} kicker="Mundo · viagem entre ambientes">
+      <div className="flex h-full flex-col">
+        <Heading sub="As rodoviárias conectam os ambientes e ficam mais desenvolvidas conforme o nível de governo.">
+          Pegue o <span className="text-gold">ônibus</span> na rodoviária
+        </Heading>
+        <div className="grid flex-1 grid-cols-[1fr_1fr_0.95fr] gap-4">
+          <div className="overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/rodoviaria.png" alt="Rodoviária e ônibus" className="h-full w-full object-cover" />
+          </div>
+          <div className="overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/viagem.png" alt="Fade de viagem de ônibus" className="h-full w-full object-cover" />
+          </div>
+          <div className="grid content-center gap-2.5">
+            {steps.map((s) => (
+              <Card key={s.t} accent="emerald" className="flex items-center gap-3 py-2.5">
+                <span className="text-2xl">{s.icon}</span>
+                <div>
+                  <p className="font-display text-sm font-bold text-cream">{s.t}</p>
+                  <p className="text-xs leading-tight text-cream-dim">{s.d}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+        <p className="mt-4 text-center text-sm text-cream-dim">
+          Viajar é livre a qualquer momento; ao concluir uma etapa, o jogo <span className="text-gold">indica a rodoviária</span> do
+          próximo ambiente.
+        </p>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 10 — Interatividade narrativa (Zimmerman) ────── */
+function V3Interatividade() {
+  const modos = [
+    ["Cognitiva", "interpretar o problema; deduzir quem decide"],
+    ["Funcional", "teclado, HUD, minimapa, Diário — o aparato do jogo"],
+    ["Explícita", "a escolha da missão: apontar o nível responsável"],
+    ["Meta / cultural", "discutir respostas com colegas; comunidade em sala"],
+  ]
+  return (
+    <Slide n={10} kicker="Narrativa no jogo × sobre o jogo · Zimmerman">
+      <div className="flex h-full flex-col">
+        <Heading sub="Nakamura separa a narrativa que está no jogo da que se forma ao redor dele; Zimmerman divide a interatividade narrativa em quatro modos.">
+          Onde a história <span className="text-gold">acontece</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-5">
+          <div className="flex flex-col gap-3">
+            <Card accent="emerald" className="flex-1">
+              <p className="font-display text-base font-bold text-emerald">Narrativa no jogo</p>
+              <p className="mt-1 text-sm text-cream-dim">
+                Selecionar elementos narrativos · detalhar conforme a relevância · desenhar a experiência em torno deles.
+              </p>
+            </Card>
+            <Card accent="gold" className="flex-1">
+              <p className="font-display text-base font-bold text-gold">Narrativa sobre o jogo</p>
+              <p className="mt-1 text-sm text-cream-dim">
+                <span className="italic">Sensemaking</span> de quem joga · formação de comunidade e experiência fora do jogo.
+              </p>
+            </Card>
+          </div>
+          <div className="grid content-center gap-2.5">
+            <p className="hud-label text-slate">Quatro modos de interatividade narrativa</p>
+            {modos.map(([a, b]) => (
+              <div key={a} className="flex items-center gap-3 rounded-sm border border-line bg-petrol/50 px-4 py-2.5">
+                <span className="w-32 shrink-0 font-display text-sm font-bold text-gold">{a}</span>
+                <span className="text-xs text-cream-dim">{b}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="mt-4 text-center text-sm text-cream-dim">
+          O jogo é um <span className="text-emerald">sistema narrativo</span>: estado inicial → mudança → compreensão
+          (<span className="text-gold">"agora sei quem decide"</span>).
+        </p>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 11 — Emoções sociais e escolhas ──────────────── */
+function V3Emocoes() {
+  const cards = [
+    { e: "⚖️", t: "Escolhas significativas", d: "Apontar o nível responsável tem consequência: acerto gera fiero.", a: "gold" as const },
+    { e: "🌊", t: "Flow", d: "Desafio calibrado ao saber adquirido mantém a jogadora na zona de fluxo.", a: "emerald" as const },
+    { e: "💞", t: "Emoções sociais", d: "Testemunhos dos moradores geram empatia pelo custo coletivo do problema.", a: "gold" as const },
+    { e: "🪞", t: "Projeção no avatar", d: "Arte estilizada deixa a jogadora preencher Joana com a própria experiência.", a: "emerald" as const },
+  ]
+  return (
+    <Slide n={11} kicker="Emoções e escolhas · Isbister (cap. 1)">
+      <div className="flex h-full flex-col">
+        <Heading sub="Jogos movem pela combinação de escolha + flow + emoções sociais; é dela que vem a força cívica de Aurora.">
+          A emoção vem da <span className="text-gold">escolha com consequência</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-[1fr_1fr_1fr_1.1fr] gap-4">
+          {cards.map((c) => (
+            <Card key={c.t} accent={c.a} className="flex flex-col justify-center">
+              <span className="text-4xl">{c.e}</span>
+              <p className="mt-2 font-display text-base font-bold text-cream">{c.t}</p>
+              <p className="mt-1.5 text-sm leading-snug text-cream-dim">{c.d}</p>
+            </Card>
+          ))}
+          <div className="flex flex-col overflow-hidden rounded-md border border-line bg-petrol/40">
+            <img src="/game/estado.png" alt="Capital do Estado" className="h-full w-full object-cover" />
+            <p className="shrink-0 px-3 py-2 text-xs text-cream-dim">
+              "Uma série de escolhas interessantes": cidadania <span className="text-emerald">sentida</span>, não só informada.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 12 — Próximos passos narrativos ──────────────── */
+function V3Procedural() {
+  const items = [
+    { t: "Ramos de consequência", d: "Respostas mudam o estado da cidade em missões futuras.", a: "gold" as const },
+    { t: "Multilinearidade leve", d: "Ordem de visita aos cargos varia; a história se recombina.", a: "emerald" as const },
+    { t: "Cidade como story-machine", d: "Problemas emergem do sistema (à la The Sims), não de um roteiro fixo.", a: "gold" as const },
+    { t: "Narrador-guia com voz", d: "Comentários que reforçam o environmental storytelling.", a: "emerald" as const },
+    { t: "Comunidade / sensemaking", d: "Comparar respostas entre colegas em sala.", a: "gold" as const },
+    { t: "Momentos definidores", d: "Reações visíveis dos NPCs a acertos e erros.", a: "emerald" as const },
+  ]
+  return (
+    <Slide n={12} kicker="Próximos passos · enredos procedimentais e multilineares">
+      <div className="flex h-full flex-col">
+        <Heading sub="Nakamura e Zimmerman apontam o caminho: usar as próprias regras do jogo como blocos de construção da história.">
+          Deixar a <span className="text-gold">jogabilidade contar</span> a história
+        </Heading>
+        <div className="grid flex-1 auto-rows-fr grid-cols-3 gap-4">
+          {items.map((x) => (
+            <Card key={x.t} accent={x.a} className="flex flex-col justify-center">
+              <p className="font-display text-base font-bold text-cream">{x.t}</p>
+              <p className="mt-1.5 text-sm leading-snug text-cream-dim">{x.d}</p>
+            </Card>
+          ))}
+        </div>
+        <div className="mt-4 rounded-md border border-emerald/30 bg-emerald/5 px-5 py-2.5 text-center text-sm text-cream">
+          Objetivo: um <span className="text-gold">game-story</span> que só um jogo poderia contar — a narrativa que emerge de
+          <span className="text-emerald"> procedimentos, relações e sistemas</span>.
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+/* ── V3 · SLIDE 13 — Encerramento ────────────────────────────── */
+function V3Encerramento() {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-ink">
+      <img src="/game/uniao.png" alt="Capital Federal" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
+      <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
+        <Tag tone="gold">◆ Narrativa a serviço da cidadania</Tag>
+        <h1 className="mt-4 font-display text-[3.2rem] font-extrabold leading-[0.95] tracking-tight text-cream drop-shadow-[0_3px_0_rgba(0,0,0,0.5)]">
+          Uma eleitora, uma cidade, <span className="text-gold">três níveis de governo.</span>
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg leading-snug text-cream">
+          Com enredo, personagens, narrador e ambientes navegáveis, Aurora transforma{" "}
+          <span className="text-emerald">"tirei o título"</span> em{" "}
+          <span className="text-gold">"sei como participar"</span>.
+        </p>
+        <div className="mt-6 flex items-center gap-3">
+          {["Nakamura", "Isbister", "Zimmerman"].map((w, i) => (
+            <span key={w} className="font-display text-lg font-bold text-cream">
+              {w}
+              {i < 2 && <span className="ml-3 text-gold">·</span>}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8">
+        <span className="hud-label text-gold">Aurora: Quem Decide? · Narrativa e Personagens</span>
+        <span className="hud-label text-slate">Projeto acadêmico — USP</span>
+      </div>
+    </div>
+  )
+}
+
 /* ──────────────────────────── Deck controller ──────────────────────────── */
 
 const DECKS = {
@@ -1320,16 +1851,34 @@ const DECKS = {
       V2Encerramento,
     ],
   },
+  3: {
+    title: "Narrativa e personagens",
+    slides: [
+      V3Cover,
+      V3Narratologia,
+      V3Enredo,
+      V3Arco,
+      V3Personagens,
+      V3PapeisSociais,
+      V3Narrador,
+      V3Mundo,
+      V3Viagem,
+      V3Interatividade,
+      V3Emocoes,
+      V3Procedural,
+      V3Encerramento,
+    ],
+  },
 } as const
 
-type Version = 1 | 2
+type Version = 1 | 2 | 3
 
 /* Segmented control to switch between the two evolutionary presentations */
 function VersionSwitch({ version, onChange }: { version: Version; onChange: (v: Version) => void }) {
   return (
     <div className="pointer-events-auto absolute left-1/2 top-4 z-20 -translate-x-1/2">
       <div className="flex items-center gap-1 rounded-md border border-line bg-ink/85 p-1 backdrop-blur-sm">
-        {([1, 2] as Version[]).map((v) => (
+        {([1, 2, 3] as Version[]).map((v) => (
           <button
             key={v}
             onClick={() => onChange(v)}

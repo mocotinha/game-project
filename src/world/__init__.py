@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from src import config
 from src.content.problems import PROBLEMS, Problem
 
 BUILDING_FOOT_H = 46  # altura da base solida do predio (o resto e apenas visual)
@@ -80,6 +81,16 @@ class Crosswalk:
 
 
 @dataclass
+class TravelPoint:
+    """Ponto de viagem (rodoviaria) que leva de um ambiente a outro."""
+    x: float
+    y: float
+    area: str   # ambiente ao qual este ponto pertence
+    dest: str   # ambiente de destino
+    label: str
+
+
+@dataclass
 class City:
     buildings: list[Building] = field(default_factory=list)
     npcs: list[NPC] = field(default_factory=list)
@@ -87,6 +98,123 @@ class City:
     regions: list[Region] = field(default_factory=list)
     crosswalks: list[Crosswalk] = field(default_factory=list)
     problems: list[Problem] = field(default_factory=list)
+    travels: list[TravelPoint] = field(default_factory=list)
+
+
+# ── Ambientes (um por nivel de governo) ───────────────────────────────────
+# Cada ambiente e um espaco navegavel separado; o jogador viaja entre eles.
+AREA_ORDER = ["municipio", "estado", "uniao"]
+AREA_TITLE = {
+    "municipio": "MUNICIPIO DE AURORA",
+    "estado": "CAPITAL DO ESTADO",
+    "uniao": "CAPITAL FEDERAL",
+}
+AREA_OF_REGION = {
+    "praca_central": "municipio",
+    "praca_cidadania": "municipio",
+    "camara": "municipio",
+    "prefeitura": "municipio",
+    "bairro_saude": "municipio",
+    "parque": "municipio",
+    "assembleia": "estado",
+    "governo": "estado",
+    "congresso": "uniao",
+    "planalto": "uniao",
+}
+AREA_OF_BUILDING = {
+    "camara": "municipio",
+    "prefeitura": "municipio",
+    "saude": "municipio",
+    "assembleia": "estado",
+    "governo": "estado",
+    "congresso": "uniao",
+    "planalto": "uniao",
+}
+# Ponto de chegada do jogador ao viajar para cada ambiente (em frente ao onibus de entrada).
+AREA_SPAWN = {
+    "municipio": (1380.0, 1520.0),
+    "estado": (2400.0, 1720.0),
+    "uniao": (2400.0, 1260.0),
+}
+
+# Geometria das vias (compartilhada com a renderizacao do chao e com as arvores de borda).
+ROAD_W = 80.0
+ROADS_V = {660: (820.0, 2080.0), 1480: (820.0, 2080.0), 2360: (440.0, 2080.0)}  # x -> (y_min, y_max)
+ROADS_H = {900: (200.0, 2900.0), 1560: (200.0, 3060.0)}                          # y -> (x_min, x_max)
+
+
+def on_road(x: float, y: float) -> bool:
+    for vx, (y0, y1) in ROADS_V.items():
+        if vx <= x <= vx + ROAD_W and y0 <= y <= y1:
+            return True
+    for hy, (x0, x1) in ROADS_H.items():
+        if hy <= y <= hy + ROAD_W and x0 <= x <= x1:
+            return True
+    return False
+
+
+def area_of_point(regions: list[Region], x: float, y: float) -> str:
+    """Ambiente de um ponto: regiao que o contem, senao a regiao mais proxima."""
+    for r in regions:
+        if r.x <= x <= r.x + r.width and r.y <= y <= r.y + r.height:
+            return AREA_OF_REGION.get(r.key, "municipio")
+    best = None
+    best_d = 1e18
+    for r in regions:
+        cx, cy = r.x + r.width / 2, r.y + r.height / 2
+        d = (cx - x) ** 2 + (cy - y) ** 2
+        if d < best_d:
+            best_d, best = d, r
+    return AREA_OF_REGION.get(best.key, "municipio") if best else "municipio"
+
+
+def _travels() -> list[TravelPoint]:
+    """Pontos de onibus sobre a rodovia, em locais visiveis e sem outras interacoes."""
+    return [
+        TravelPoint(1380, 1600, "municipio", "estado", "Onibus -> Capital do Estado"),
+        TravelPoint(2400, 1800, "estado", "municipio", "Onibus -> Municipio de Aurora"),
+        TravelPoint(2400, 1460, "estado", "uniao", "Onibus -> Capital Federal"),
+        TravelPoint(2400, 1340, "uniao", "estado", "Onibus -> Capital do Estado"),
+    ]
+
+
+def area_bounds(regions: list[Region], area: str, margin: float = 120.0) -> tuple[float, float, float, float]:
+    """Retangulo navegavel de um ambiente: uniao das suas regioes + margem."""
+    rs = [r for r in regions if AREA_OF_REGION.get(r.key) == area] or regions
+    x0 = max(0.0, min(r.x for r in rs) - margin)
+    y0 = max(0.0, min(r.y for r in rs) - margin)
+    x1 = min(float(config.MAP_WIDTH), max(r.x + r.width for r in rs) + margin)
+    y1 = min(float(config.MAP_HEIGHT), max(r.y + r.height for r in rs) + margin)
+    return (x0, y0, x1, y1)
+
+
+def _border_trees(regions: list[Region], buildings: list[Building], travels: list[TravelPoint]) -> list[Prop]:
+    """Cerca de arvores na borda de cada ambiente, para a margem nao parecer 'bater no nada'."""
+    out: list[Prop] = []
+    for area in AREA_ORDER:
+        x0, y0, x1, y1 = area_bounds(regions, area)
+        inset, step = 46.0, 42.0  # passo < largura visual da arvore -> cerca sem vaos
+        xa, xb, ya, yb = x0 + inset, x1 - inset, y0 + inset, y1 - inset
+        pts: list[tuple[float, float]] = []
+        x = xa
+        while x <= xb:
+            pts.append((x, ya))
+            pts.append((x, yb))
+            x += step
+        y = ya + step
+        while y < yb:
+            pts.append((xa, y))
+            pts.append((xb, y))
+            y += step
+        for tx, ty in pts:
+            if on_road(tx, ty):
+                continue  # deixa a via atravessar a cerca ate o ponto de onibus na borda
+            if any(b.x - 70 < tx < b.x + b.width + 70 and b.y - 70 < ty < b.y + b.height + 70 for b in buildings):
+                continue
+            if any((t.x - tx) ** 2 + (t.y - ty) ** 2 < 150 ** 2 for t in travels):
+                continue
+            out.append(Prop(f"Arvore de borda {area}", tx, ty, 44, 70, "tree", solid=True))
+    return out
 
 
 def _crosswalks() -> list[Crosswalk]:
@@ -164,7 +292,7 @@ def build_city() -> City:
             "Vim de uma cidade vizinha; por aqui a gente se encontra bastante.", tint=(210, 220, 240)),
         NPC("Jovem Rui", "Estudante", 2070, 1640, "male_person",
             "Estudo como o estado coordena servicos entre varias cidades.", tint=(200, 235, 220)),
-        NPC("Caminhoneiro Zeca", "Caminhoneiro", 2400, 1240, "male_adventurer",
+        NPC("Caminhoneiro Zeca", "Caminhoneiro", 2560, 1560, "male_adventurer",
             "Rodo o estado inteiro por essas estradas. Uma interdicao atrapalha todo mundo.", tint=(235, 210, 180)),
         NPC("Motorista Cida", "Motorista", 2520, 1620, "female_adventurer",
             "Dirijo entre cidades todo dia; a estrada faz diferenca no meu trabalho.", tint=(255, 215, 235)),
@@ -220,8 +348,37 @@ def build_city() -> City:
     ]
 
     props += _street_decor()
+    travels = _travels()
+    props += _border_trees(regions, buildings, travels)
     npcs += _protesters(buildings)
-    return City(buildings=buildings, npcs=npcs, props=props, regions=regions, crosswalks=_crosswalks(), problems=list(PROBLEMS))
+    npcs += _extra_crowd()
+    return City(buildings=buildings, npcs=npcs, props=props, regions=regions,
+                crosswalks=_crosswalks(), problems=list(PROBLEMS), travels=travels)
+
+
+def _extra_crowd() -> list[NPC]:
+    """Figurantes de ambiente: cartorio eleitoral (municipio) e capital federal movimentada (uniao)."""
+    crowd: list[NPC] = []
+    # Municipio: mesaria do cartorio eleitoral conecta o novo enredo (titulo de eleitora).
+    crowd.append(NPC("Mesaria Dulce", "Cartorio Eleitoral", 640, 1080, "female_adventurer",
+                     "Parabens pelo titulo, Joana! Agora vem a melhor parte: entender como participar.",
+                     extra_line="Votar e so o comeco. Cidadania tambem e cobrar, fiscalizar e acompanhar.",
+                     tint=(255, 226, 190)))
+    # Uniao: a capital federal e movimentada; muita gente circula perto do Congresso.
+    federal = [
+        ("Turista Lia", "Turista", 2440, 560, "female_person", "Vim conhecer o Congresso; quanta gente circulando por aqui!"),
+        ("Reporter Teo", "Reporter", 2700, 560, "male_adventurer", "Cubro as votacoes do dia para a imprensa nacional."),
+        ("Guia Celia", "Guia de Turismo", 2540, 540, "female_adventurer", "Por aqui, pessoal! A Camara dos Deputados fica a frente."),
+        ("Servidor Elias", "Servidor", 2620, 560, "male_person", "Circulo entre os gabinetes o dia inteiro; o ritmo e intenso."),
+        ("Estudante Rafa", "Estudante", 2460, 520, "male_person", "Viemos de excursao ver como nascem as leis do pais."),
+        ("Estudante Isa", "Estudante", 2720, 520, "female_person", "A capital federal vive cheia de gente de todo canto."),
+        ("Lobista Nair", "Representante", 2840, 820, "female_person", "Represento entidades que acompanham as pautas no Congresso."),
+        ("Seguranca Val", "Seguranca", 2600, 600, "male_adventurer", "Com tanto movimento, mantemos tudo organizado por aqui."),
+        ("Ambulante Ze", "Ambulante", 2360, 620, "male_person", "Vendo agua e cafe para a multidao que passa o dia aqui."),
+    ]
+    for name, role, x, y, kit, line in federal:
+        crowd.append(NPC(name, role, x, y, kit, line, tint=(220, 224, 240)))
+    return crowd
 
 
 # Manifestacoes: por chave do predio -> (missao, palavra de ordem, cor).
@@ -292,5 +449,20 @@ def _street_decor() -> list[Prop]:
     for kind, x, y in [("stall_green", 500, 1120), ("stall_orange", 840, 1080),
                        ("stall_green", 1120, 1240), ("stall_orange", 1360, 1080)]:
         add(kind, x, y, w=44, h=40)
+
+    # Capital federal movimentada: transito intenso na avenida do Congresso (via x2360).
+    federal_cars = [
+        ("car_taxi", 2360, 540, False), ("car_bus", 2420, 620, True),
+        ("car_sedan", 2360, 720, False), ("car_suv", 2420, 840, True),
+        ("car_van", 2360, 920, False), ("car_sports", 2300, 660, True),
+        ("car_police", 2300, 820, True),
+    ]
+    for kind, x, y, flip in federal_cars:
+        add(kind, x, y, w=70, h=32, solid=True, flip=flip)
+    # Mobiliario urbano extra reforcando o movimento da capital.
+    for x, y in [(2460, 980), (2680, 980), (2560, 520), (2820, 700)]:
+        add("trashcan", x, y, w=18, h=24)
+    for x, y in [(2420, 660), (2760, 660), (2520, 940)]:
+        add("streetlamp", x, y, w=16, h=54, solid=True)
 
     return decor

@@ -37,29 +37,31 @@ def evidence_ids(mission_id: str) -> tuple[str, str, str]:
 # Enredo geral do jogo, apresentado por etapa.
 STORY = {
     "abertura": (
-        "Joana acaba de se mudar para Aurora do Brasil. Ela percebe que muita gente reclama "
-        "de problemas na cidade, mas quase ninguem sabe QUEM tem o poder de resolver cada um deles.\n"
-        "Decidida a entender a politica de verdade, ela comeca a conversar com quem ocupa cada cargo."
+        "Joana acaba de tirar seu primeiro titulo de eleitora em Aurora do Brasil.\n"
+        "Com o documento novo na mao, ela se pergunta o que significa, na pratica, exercer a cidadania "
+        "e qual e o seu novo papel na sociedade.\n"
+        "Decidida a entender a politica de verdade, ela comeca a descobrir QUEM decide cada problema - e como cobrar."
     ),
     "municipio": (
         "ETAPA 1 - O MUNICIPIO\n"
         "Tudo comeca perto de casa. Na praca, na Camara e na Prefeitura, Joana descobre o que um "
-        "vereador e um prefeito podem e nao podem fazer."
+        "vereador e um prefeito podem e nao podem fazer. O municipio e um ambiente calmo e proximo."
     ),
     "estado": (
         "ETAPA 2 - O ESTADO\n"
-        "Alguns problemas sao grandes demais para um municipio sozinho. Joana viaja ate o centro "
-        "estadual para entender deputados estaduais e o governador."
+        "Alguns problemas sao grandes demais para um municipio sozinho. Joana pega o onibus ate a "
+        "capital do estado para entender deputados estaduais e o governador."
     ),
     "uniao": (
         "ETAPA 3 - A UNIAO\n"
-        "As leis que valem para todo o pais nascem no Congresso. Joana chega a capital para conhecer "
-        "senadores, deputados federais e o presidente."
+        "As leis que valem para todo o pais nascem no Congresso. Joana chega a movimentada capital federal "
+        "para conhecer senadores, deputados federais e o presidente."
     ),
     "final": (
         "ENCERRAMENTO\n"
         "Depois de percorrer os tres niveis de governo, Joana entende que decisoes publicas dependem "
-        "de competencia, orcamento, leis e participacao. Agora ela sabe a quem cobrar cada assunto."
+        "de competencia, orcamento, leis e participacao. De titulo na mao, ela agora sabe a quem cobrar "
+        "cada assunto - e como participar alem do voto."
     ),
 }
 

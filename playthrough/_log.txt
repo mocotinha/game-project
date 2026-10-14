@@ -1,0 +1,105 @@
+[shot] playthrough\00_abertura.png  mode=STORY loc=city area=municipio
+[shot] playthrough\01_municipio_overview.png  mode=EXPLORE loc=city area=municipio
+[walk] OK  m1 problema: dist=69 (tol 70) pos=(1491,1046)
+[shot] playthrough\02_m1_problema.png  mode=EXPLORE loc=city area=municipio
+[walk] OK  m1 sidequest Dona Alzira: dist=97 (tol 100) pos=(696,1277)
+[walk] WARN m1 testemunho Feirante Nilo: dist=261 (tol 100) pos=(682,1210)
+[walk] OK  m1 testemunho Gari Rita: dist=96 (tol 100) pos=(780,980)
+[shot] playthrough\03_m1_testemunho.png  mode=EXPLORE loc=city area=municipio
+[walk] OK  m1 porta camara: dist=89 (tol 90) pos=(442,1625)
+[enter] OK  camara: walked=True interior=camara
+[shot] playthrough\04_m1_interior_camara.png  mode=EXPLORE loc=camara area=municipio
+[walk] OK  lei (livro): dist=84 (tol 85) pos=(304,294)
+[shot] playthrough\05_m1_lei.png  mode=EXPLORE loc=camara area=municipio
+[walk] OK  falar com o cargo: dist=94 (tol 95) pos=(466,416)
+[mission] mode=MISSION active=saude_bairro
+[shot] playthrough\06_m1_pergunta.png  mode=MISSION loc=camara area=municipio
+[shot] playthrough\07_m1_concluida.png  mode=COMPLETE loc=camara area=municipio
+[result] OK  saude_bairro completed=['saude_bairro']
+[walk] OK  m2 problema: dist=69 (tol 70) pos=(819,1353)
+[shot] playthrough\08_m2_problema.png  mode=EXPLORE loc=city area=municipio
+[walk] WARN m2 sidequest Professora Ines: dist=360 (tol 100) pos=(880,1324)
+[walk] OK  m2 testemunho Vovo Alberto: dist=100 (tol 100) pos=(1041,1116)
+[walk] OK  m2 testemunho Gari Bento: dist=97 (tol 100) pos=(1430,926)
+[shot] playthrough\09_m2_testemunho.png  mode=EXPLORE loc=city area=municipio
+[walk] WARN m2 porta prefeitura: dist=893 (tol 90) pos=(1556,941)
+[enter] OK  prefeitura: walked=False interior=prefeitura
+[shot] playthrough\10_m2_interior_prefeitura.png  mode=EXPLORE loc=prefeitura area=municipio
+[walk] OK  lei (livro): dist=84 (tol 85) pos=(304,294)
+[shot] playthrough\11_m2_lei.png  mode=EXPLORE loc=prefeitura area=municipio
+[walk] OK  falar com o cargo: dist=94 (tol 95) pos=(466,416)
+[mission] mode=MISSION active=orcamento_cidade
+[shot] playthrough\12_m2_pergunta.png  mode=MISSION loc=prefeitura area=municipio
+[shot] playthrough\13_m2_concluida.png  mode=COMPLETE loc=prefeitura area=municipio
+[result] OK  orcamento_cidade completed=['saude_bairro', 'orcamento_cidade']
+[walk] OK  rodoviaria -> estado: dist=87 (tol 90) pos=(1280,1123)
+[travel] OK  area=estado expected=estado
+[shot] playthrough\14_t1_chegada_estado.png  mode=EXPLORE loc=city area=estado
+[walk] OK  m3 problema: dist=68 (tol 70) pos=(2232,1662)
+[shot] playthrough\15_m3_problema.png  mode=EXPLORE loc=city area=estado
+[walk] OK  m3 sidequest Dona Vera: dist=99 (tol 100) pos=(2089,1677)
+[walk] OK  m3 testemunho Seu Otavio: dist=98 (tol 100) pos=(2071,1691)
+[walk] OK  m3 testemunho Jovem Rui: dist=98 (tol 100) pos=(2157,1671)
+[shot] playthrough\16_m3_testemunho.png  mode=EXPLORE loc=city area=estado
+[walk] OK  m3 porta assembleia: dist=87 (tol 90) pos=(2083,1668)
+[enter] OK  assembleia: walked=True interior=assembleia
+[shot] playthrough\17_m3_interior_assembleia.png  mode=EXPLORE loc=assembleia area=estado
+[walk] OK  lei (livro): dist=84 (tol 85) pos=(304,294)
+[shot] playthrough\18_m3_lei.png  mode=EXPLORE loc=assembleia area=estado
+[walk] OK  falar com o cargo: dist=94 (tol 95) pos=(466,416)
+[mission] mode=MISSION active=hospital_regional
+[shot] playthrough\19_m3_pergunta.png  mode=MISSION loc=assembleia area=estado
+[shot] playthrough\20_m3_concluida.png  mode=COMPLETE loc=assembleia area=estado
+[result] OK  hospital_regional completed=['saude_bairro', 'orcamento_cidade', 'hospital_regional']
+[walk] OK  m4 problema: dist=67 (tol 70) pos=(2453,1564)
+[shot] playthrough\21_m4_problema.png  mode=EXPLORE loc=city area=estado
+[walk] OK  m4 sidequest Caminhoneiro Zeca: dist=88 (tol 100) pos=(2520,1564)
+[walk] OK  m4 testemunho Motorista Cida: dist=56 (tol 100) pos=(2599,1600)
+[walk] OK  m4 testemunho Feirante Tino: dist=99 (tol 100) pos=(2598,1629)
+[shot] playthrough\22_m4_testemunho.png  mode=EXPLORE loc=city area=estado
+[walk] OK  m4 porta governo: dist=87 (tol 90) pos=(2711,1638)
+[enter] OK  governo: walked=True interior=governo
+[shot] playthrough\23_m4_interior_governo.png  mode=EXPLORE loc=governo area=estado
+[walk] OK  lei (livro): dist=84 (tol 85) pos=(304,294)
+[shot] playthrough\24_m4_lei.png  mode=EXPLORE loc=governo area=estado
+[walk] OK  falar com o cargo: dist=94 (tol 95) pos=(466,416)
+[mission] mode=MISSION active=rodovia_estadual
+[shot] playthrough\25_m4_pergunta.png  mode=MISSION loc=governo area=estado
+[shot] playthrough\26_m4_concluida.png  mode=COMPLETE loc=governo area=estado
+[result] OK  rodovia_estadual completed=['saude_bairro', 'orcamento_cidade', 'hospital_regional', 'rodovia_estadual']
+[walk] OK  rodoviaria -> uniao: dist=88 (tol 90) pos=(2780,1664)
+[travel] OK  area=uniao expected=uniao
+[shot] playthrough\27_t2_chegada_uniao.png  mode=EXPLORE loc=city area=uniao
+[walk] OK  m5 problema: dist=54 (tol 70) pos=(2560,560)
+[shot] playthrough\28_m5_problema.png  mode=EXPLORE loc=city area=uniao
+[walk] OK  m5 sidequest Estudante Bruno: dist=98 (tol 100) pos=(2598,556)
+[walk] OK  m5 testemunho Professor Nabuco: dist=99 (tol 100) pos=(2581,558)
+[walk] WARN m5 testemunho Ativista Rosa: dist=253 (tol 100) pos=(2574,618)
+[shot] playthrough\29_m5_testemunho.png  mode=EXPLORE loc=city area=uniao
+[walk] WARN m5 porta congresso: dist=234 (tol 90) pos=(2414,756)
+[enter] OK  congresso: walked=False interior=congresso
+[shot] playthrough\30_m5_interior_congresso.png  mode=EXPLORE loc=congresso area=uniao
+[walk] OK  lei (livro): dist=84 (tol 85) pos=(304,294)
+[shot] playthrough\31_m5_lei.png  mode=EXPLORE loc=congresso area=uniao
+[walk] OK  falar com o cargo: dist=94 (tol 95) pos=(466,416)
+[mission] mode=MISSION active=lei_federal
+[shot] playthrough\32_m5_pergunta.png  mode=MISSION loc=congresso area=uniao
+[shot] playthrough\33_m5_concluida.png  mode=COMPLETE loc=congresso area=uniao
+[result] OK  lei_federal completed=['saude_bairro', 'orcamento_cidade', 'hospital_regional', 'rodovia_estadual', 'lei_federal']
+[walk] WARN m6 problema: dist=503 (tol 70) pos=(2732,618)
+[shot] playthrough\34_m6_problema.png  mode=EXPLORE loc=city area=uniao
+[walk] OK  m6 sidequest Servidora Dinah: dist=99 (tol 100) pos=(2972,1072)
+[walk] OK  m6 testemunho Analista Ivo: dist=97 (tol 100) pos=(2988,1102)
+[walk] OK  m6 testemunho Cidada Marli: dist=97 (tol 100) pos=(2867,1255)
+[shot] playthrough\35_m6_testemunho.png  mode=EXPLORE loc=city area=uniao
+[walk] OK  m6 porta planalto: dist=87 (tol 90) pos=(2930,1080)
+[enter] OK  planalto: walked=True interior=planalto
+[shot] playthrough\36_m6_interior_planalto.png  mode=EXPLORE loc=planalto area=uniao
+[walk] OK  lei (livro): dist=84 (tol 85) pos=(304,294)
+[shot] playthrough\37_m6_lei.png  mode=EXPLORE loc=planalto area=uniao
+[walk] OK  falar com o cargo: dist=94 (tol 95) pos=(466,416)
+[mission] mode=MISSION active=politica_nacional
+[shot] playthrough\38_m6_pergunta.png  mode=MISSION loc=planalto area=uniao
+[shot] playthrough\39_m6_concluida.png  mode=COMPLETE loc=planalto area=uniao
+[result] OK  politica_nacional completed=['saude_bairro', 'orcamento_cidade', 'hospital_regional', 'rodovia_estadual', 'lei_federal', 'politica_nacional']
+[shot] playthrough\40_final.png  mode=EXPLORE loc=planalto area=uniao

@@ -57,6 +57,7 @@ def new_game_state(player_name: str = "Joana") -> dict[str, Any]:
     return {
         "player_name": player_name,
         "region": "praca_central",
+        "area": "municipio",
         "position": {"x": 600.0, "y": 1200.0},
         "completed_missions": [],
         "learned_roles": [],

@@ -70,7 +70,7 @@ PROBLEMS: tuple[Problem, ...] = (
         id="rodovia_interditada",
         mission_id="rodovia_estadual",
         region_key="governo",
-        x=2400, y=1320,
+        x=2520, y=1560,
         title="Rodovia interditada",
         desc_unsolved=(
             "CONES E BARREIRAS: um trecho da rodovia que liga cidades do estado esta esburacado "
