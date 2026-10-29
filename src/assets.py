@@ -135,6 +135,32 @@ def city_tile(index: int):
     return _rmc_grid()[index]
 
 
+@lru_cache(maxsize=None)
+def city_tile_crown(index: int):
+    """Somente a copa (sem caule) de uma arvore do tileset.
+
+    Usada nas cercas de borda: copas sobrepostas formam uma folhagem continua,
+    sem caules aparecendo entre as arvores.
+    """
+    from PIL import Image
+
+    out = PROJECT_ROOT / "assets" / "kenney" / "_generated" / f"rmc_crown_{index}.png"
+    if not out.exists():
+        sheet = Image.open(RMC_SHEET).convert("RGBA")
+        col, row = index % 37, index // 37
+        tile = sheet.crop((col * 16, row * 16, col * 16 + 16, row * 16 + 16))
+        alpha = tile.getchannel("A")
+        bottom = 16
+        while bottom > 1:  # remove, de baixo para cima, as linhas estreitas do caule
+            width = sum(1 for x in range(16) if alpha.getpixel((x, bottom - 1)) > 40)
+            if width > 6:
+                break
+            bottom -= 1
+        out.parent.mkdir(parents=True, exist_ok=True)
+        tile.crop((0, 0, 16, bottom)).save(out)
+    return arcade.load_texture(str(out))
+
+
 # ---- Kenney Pixel Vehicle Pack (CC0): pessoas, veiculos e mobiliario ----
 @lru_cache(maxsize=None)
 def person_frames(gender: str) -> dict[str, object]:

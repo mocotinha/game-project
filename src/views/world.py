@@ -38,14 +38,20 @@ PROP_SCALE = {"tree": 0.55, "bush": 0.5, "crate": 0.5}
 
 # ---- Kenney Roguelike Modern City: cidade top-down em tiles 16x16 ----
 TILE = 48.0  # tamanho do tile na tela (unidades de mundo)
-GROUND_TILES = {"grass": 888, "road": 787, "plaza": 740, "sidewalk": 740, "crosswalk_h": 823, "crosswalk_v": 826}
+GROUND_TILES = {
+    "grass": 888, "plaza": 740, "sidewalk": 740,
+    # Vias: tracejado central alinhado ao fluxo; cruzamento em asfalto liso.
+    "road_v": 749, "road_h": 749, "road_x": 898,
+    "crosswalk_h": 823, "crosswalk_v": 826,
+}
 # Cor do telhado por predio, na ordem das construcoes da cidade.
 BUILDING_ROOFS = ["tan", "brick", "white", "grey", "tan", "grey", "white"]
 # Props renderizados com tiles do Roguelike Modern City (billboards top-down).
 CITY_PROP_TILES = {
-    "tree": 438, "bush": 441, "bench": 504, "citybench": 504,
+    "tree": 438, "pine": 441, "tree_autumn": 439, "bush": 441, "shrub": 512,
+    "bench": 570, "citybench": 570,
     "trashcan": 499, "mailbox": 482, "barrel": 498,
-    "stall_green": 504, "stall_orange": 508,
+    "stall_green": 677, "stall_orange": 676,
 }
 # Veiculos do Pixel Vehicle Pack (billboards laterais).
 VEHICLES = {
@@ -68,6 +74,9 @@ ROAD_X_SPAN = ROADS_V
 ROAD_Y_SPAN = ROADS_H
 MM_W, MM_H = 250, 188
 RX, RY, RW, RH = 70, 120, 1140, 470
+# Folga superior de movimento: mantem o jogador visivel abaixo da barra do HUD (54 px)
+# e alinhado a cerca de arvores da borda superior.
+PLAYER_TOP_PAD = 100.0
 
 
 class Mode(Enum):
@@ -157,6 +166,9 @@ class WorldView(arcade.View):
         self.npc_sprites: list[tuple[arcade.Sprite, NPC]] = []
         self.prop_sprites: list[tuple[arcade.Sprite, Prop]] = []
         self.building_sprites: dict[int, arcade.Sprite] = {}
+        # Cerca de borda em SpriteList por ambiente: desenho em lote (fluidez),
+        # ja que o jogador nunca sobrepoe visualmente essas arvores.
+        self.border_sprites: dict[str, arcade.SpriteList] = {a: arcade.SpriteList() for a in AREA_ORDER}
 
         self._build_ground()
 
@@ -194,6 +206,14 @@ class WorldView(arcade.View):
                 self.prop_sprites.append((sprite, prop))
                 continue
             if prop.kind in CITY_PROP_TILES:
+                if prop.name.startswith("Arvore de borda "):
+                    # Cerca de borda: copas sem caule, sobrepostas em folhagem continua.
+                    texture = assets.city_tile_crown(CITY_PROP_TILES[prop.kind])
+                    sprite = arcade.Sprite(texture, scale=TILE / 16)
+                    sprite.center_x = prop.x
+                    sprite.center_y = prop.y + sprite.height / 2
+                    self.border_sprites[prop.name.rsplit(" ", 1)[1]].append(sprite)
+                    continue
                 texture = assets.city_tile(CITY_PROP_TILES[prop.kind])
                 if prop.flip:
                     texture = texture.flip_left_right()
@@ -210,6 +230,10 @@ class WorldView(arcade.View):
             sprite.center_x = prop.x
             sprite.center_y = prop.y + sprite.height / 2
             self.prop_sprites.append((sprite, prop))
+
+        # Copas mais ao sul (y menor) por cima: sobreposicao coerente com o top-down.
+        for border in self.border_sprites.values():
+            border.sort(key=lambda s: -s.center_y)
 
         self.player_sprite = self._make_actor(None)
         self.int_npc_sprites: list[tuple[arcade.Sprite, NPC]] = []
@@ -245,7 +269,8 @@ class WorldView(arcade.View):
                 sq_area[target] = mission.stage
         self.prop_area = {}
         for prop in self.city.props:
-            if prop.name.startswith("Arvore de borda "):
+            # Props de borda carregam o ambiente no sufixo do nome.
+            if prop.name.startswith("Arvore de borda ") or prop.name.startswith("Fim da via "):
                 self.prop_area[id(prop)] = prop.name.rsplit(" ", 1)[1]
             else:
                 self.prop_area[id(prop)] = area_of_point(regs, prop.x, prop.y)
@@ -267,6 +292,7 @@ class WorldView(arcade.View):
         self.cur_prop_sprites = [(s, p) for (s, p) in self.prop_sprites if self.prop_area.get(id(p)) == a]
         self.cur_vector_props = [p for p in self.vector_props if self.prop_area.get(id(p)) == a]
         self.cur_props = [p for p in self.city.props if self.prop_area.get(id(p)) == a]
+        self.cur_border = self.border_sprites.get(a)
         self.cur_problems = [p for p in self.city.problems if self.problem_area.get(p.id) == a]
         self.cur_travels = [t for t in self.city.travels if t.area == a]
         self.map_x0, self.map_y0, self.map_x1, self.map_y1 = area_bounds(self.city.regions, a)
@@ -286,7 +312,7 @@ class WorldView(arcade.View):
 
     def _clamp_player_to_area(self) -> None:
         self.player_x = min(self.map_x1 - 30, max(self.map_x0 + 30, self.player_x))
-        self.player_y = min(self.map_y1 - 30, max(self.map_y0 + 30, self.player_y))
+        self.player_y = min(self.map_y1 - PLAYER_TOP_PAD, max(self.map_y0 + 30, self.player_y))
 
     def _travel_toward(self, dest: str) -> TravelPoint | None:
         """Ponto de viagem do ambiente atual que avanca em direcao a ``dest``."""
@@ -374,8 +400,12 @@ class WorldView(arcade.View):
             for vx in ROAD_X:
                 if ROAD_X_SPAN[vx][0] <= cy <= ROAD_X_SPAN[vx][1] and (vx + ROAD_W < cx <= vx + ROAD_W + TILE or vx - TILE <= cx < vx):
                     return "crosswalk_v"
-        if on_v or on_h:
-            return "road"
+        if on_v and on_h:
+            return "road_x"
+        if on_v:
+            return "road_v"
+        if on_h:
+            return "road_h"
         # Calcada margeando as vias (respeitando o alcance de cada segmento).
         margin = 40
         if any(vx - margin <= cx <= vx + ROAD_W + margin and ROAD_X_SPAN[vx][0] - margin <= cy <= ROAD_X_SPAN[vx][1] + margin for vx in ROAD_X) \
@@ -393,13 +423,15 @@ class WorldView(arcade.View):
     def _build_ground(self) -> None:
         self.ground = arcade.SpriteList()
         scale = TILE / 16
+        textures = {kind: assets.city_tile(index) for kind, index in GROUND_TILES.items()}
+        textures["road_h"] = textures["road_h"].rotate_90()  # tracejado girado p/ via horizontal
         cols = int(config.MAP_WIDTH // TILE) + 1
         rows = int(config.MAP_HEIGHT // TILE) + 1
         for row in range(rows):
             for col in range(cols):
                 cx = col * TILE + TILE / 2
                 cy = row * TILE + TILE / 2
-                sprite = arcade.Sprite(assets.city_tile(GROUND_TILES[self._ground_kind(cx, cy)]), scale=scale)
+                sprite = arcade.Sprite(textures[self._ground_kind(cx, cy)], scale=scale)
                 sprite.center_x = cx
                 sprite.center_y = cy
                 self.ground.append(sprite)
@@ -498,6 +530,8 @@ class WorldView(arcade.View):
 
     def _draw_city(self) -> None:
         self.ground.draw(pixelated=True)
+        if self.cur_border is not None:
+            self.cur_border.draw(pixelated=True)
         building_regions = {b.key for b in self.cur_buildings if b.key}
         for region in self.cur_regions:
             if region.key in building_regions:
@@ -514,7 +548,10 @@ class WorldView(arcade.View):
         for sprite, npc in self.cur_npc_sprites:
             if self._npc_visible(npc):
                 drawables.append((npc.y, 1, sprite))
+        road_fixed = "rodovia_estadual" in self.state.get("completed_missions", [])
         for sprite, prop in self.cur_prop_sprites:
+            if road_fixed and prop.name == "Interdicao da rodovia":
+                continue  # missao concluida: a rodovia foi liberada
             drawables.append((prop.y, 1, sprite))
         for prop in self.cur_vector_props:
             drawables.append((prop.y, 2, prop))
@@ -639,22 +676,43 @@ class WorldView(arcade.View):
             arcade.draw_circle_filled(b.door_x, b.y + 8, 5, config.COLOR_ACCENT)
 
     def _draw_vector_prop(self, prop: Prop) -> None:
+        """Fonte e lago desenhados 'apoiados' no chao: sombra de contato colada a base."""
         x, y = prop.x, prop.y
-        arcade.draw_ellipse_filled(x, y - 6, prop.width + 18, 13, (25, 49, 48))
+        w, h = prop.width, prop.height
+        cy = y + h / 2  # centro da elipse; a base encosta em prop.y
         if prop.kind == "fountain":
-            arcade.draw_ellipse_filled(x, y + 10, prop.width, prop.height, (113, 126, 132))
-            arcade.draw_ellipse_filled(x, y + 15, prop.width - 18, prop.height - 10, (77, 166, 188))
-            arcade.draw_line(x, y + 30, x, y + 58, (137, 218, 228), 3)
+            arcade.draw_ellipse_filled(x, cy - 4, w + 14, h + 6, (25, 49, 48))    # sombra de contato
+            arcade.draw_ellipse_filled(x, cy, w + 10, h + 4, (96, 104, 110))      # borda de pedra
+            arcade.draw_ellipse_filled(x, cy + 3, w - 4, h - 6, (121, 134, 140))  # anel interno
+            arcade.draw_ellipse_filled(x, cy + 4, w - 16, h - 14, (74, 150, 184))  # agua
+            t = (self.clock * 0.7) % 1.0
+            fade = int(150 * (1.0 - t))
+            arcade.draw_ellipse_outline(x, cy + 4, (w - 16) * (0.25 + 0.75 * t),
+                                        (h - 14) * (0.25 + 0.75 * t), (205, 232, 240, fade), 2)
+            arcade.draw_ellipse_filled(x, cy + 6, 20, 11, (96, 104, 110))         # pedestal
+            arcade.draw_lbwh_rectangle_filled(x - 3, cy + 6, 6, 16, (121, 134, 140))
+            spray = 2 + math.sin(self.clock * 6) * 1.5
+            arcade.draw_ellipse_filled(x, cy + 24, 14 + spray, 7, (137, 218, 228))
+        elif prop.kind == "lake":
+            arcade.draw_ellipse_filled(x, cy - 3, w + 16, h + 10, (33, 66, 52))    # margem umida
+            arcade.draw_ellipse_filled(x, cy, w, h, (36, 78, 104))                 # agua funda
+            arcade.draw_ellipse_filled(x, cy + 2, w - 16, h - 14, (52, 108, 140))
+            arcade.draw_ellipse_filled(x, cy + 4, w - 44, h - 32, (74, 150, 184))  # agua rasa
+            t = (self.clock * 0.45) % 1.0
+            fade = int(120 * (1.0 - t))
+            arcade.draw_ellipse_outline(x, cy + 3, (w - 44) * (0.3 + 0.7 * t),
+                                        (h - 32) * (0.3 + 0.7 * t), (190, 225, 238, fade), 2)
+            shine = math.sin(self.clock * 2) * 4
+            arcade.draw_ellipse_filled(x - w * 0.18 + shine, cy + h * 0.14, 26, 6, (150, 205, 225))
+            arcade.draw_ellipse_filled(x + w * 0.2 - shine, cy - h * 0.1, 18, 5, (150, 205, 225))
         elif prop.kind == "bench":
-            arcade.draw_lbwh_rectangle_filled(x - prop.width / 2, y + 10, prop.width, 9, (137, 82, 48))
-            arcade.draw_lbwh_rectangle_filled(x - prop.width / 2, y + 24, prop.width, 9, (161, 97, 52))
+            arcade.draw_ellipse_filled(x, y + 4, w + 8, 12, (25, 49, 48))
+            arcade.draw_lbwh_rectangle_filled(x - w / 2, y + 4, w, 9, (137, 82, 48))
+            arcade.draw_lbwh_rectangle_filled(x - w / 2, y + 16, w, 9, (161, 97, 52))
         elif prop.kind == "lamp":
+            arcade.draw_ellipse_filled(x, y + 3, 20, 9, (25, 49, 48))
             arcade.draw_lbwh_rectangle_filled(x - 3, y, 6, 50, (55, 57, 62))
             arcade.draw_circle_filled(x, y + 58, 9, (244, 197, 91))
-        elif prop.kind == "lake":
-            arcade.draw_ellipse_filled(x, y + prop.height / 2, prop.width, prop.height, (52, 108, 140))
-            arcade.draw_ellipse_filled(x, y + prop.height / 2, prop.width - 26, prop.height - 22, (74, 150, 184))
-            arcade.draw_ellipse_outline(x, y + prop.height / 2, prop.width, prop.height, (36, 78, 104), 3)
 
     def _sync_city_actors(self) -> None:
         for sprite, npc in self.cur_npc_sprites:
@@ -978,7 +1036,7 @@ class WorldView(arcade.View):
             self.player_x = nx
         else:
             self.velocity_x = 0
-        ny = min(self.map_y1 - 30, max(self.map_y0 + 30, self.player_y + dy))
+        ny = min(self.map_y1 - PLAYER_TOP_PAD, max(self.map_y0 + 30, self.player_y + dy))
         if not self._blocked(self.player_x, ny, 0, dy):
             self.player_y = ny
         else:
@@ -1000,6 +1058,15 @@ class WorldView(arcade.View):
                 return True
         for prop in self.cur_props:
             if not prop.solid:
+                continue
+            if prop.kind == "lake":
+                # Colisao eliptica fiel a margem desenhada do lago.
+                rx = prop.width / 2 + 14
+                ry = prop.height / 2 + 14
+                ex = (x - prop.x) / rx
+                ey = (y - (prop.y + prop.height / 2)) / ry
+                if ex * ex + ey * ey < 1.0:
+                    return True
                 continue
             if abs(prop.x - x) < prop.width / 2 + 20 and abs(prop.y - y) < prop.height / 2 + 20:
                 if prop.pushable:

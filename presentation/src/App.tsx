@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 
 const TOTAL = 13
 import {
@@ -66,11 +66,13 @@ function Slide({
   kicker,
   children,
   bg = "grid",
+  total = TOTAL,
 }: {
   n: number
   kicker: string
   children: ReactNode
   bg?: "grid" | "plain"
+  total?: number
 }) {
   return (
     <div className={`relative flex h-full w-full flex-col bg-ink ${bg === "grid" ? "map-grid" : ""}`}>
@@ -82,7 +84,7 @@ function Slide({
         </div>
         <div className="flex items-center gap-4">
           <span className="hud-label text-slate">{kicker}</span>
-          <span className="font-pixel text-[0.55rem] text-gold">{String(n).padStart(2, "0")}/{TOTAL}</span>
+          <span className="font-pixel text-[0.55rem] text-gold">{String(n).padStart(2, "0")}/{total}</span>
         </div>
       </div>
       {/* content */}
@@ -1812,6 +1814,374 @@ function V3Encerramento() {
   )
 }
 
+/* Apresentação 4 — modelagem de agentes (Silva, 2024) e narrativa (Nakamura, 2026). */
+
+function V4Cover() {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-ink">
+      <CityPanorama className="absolute inset-0 h-full w-full opacity-30" dusk />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" />
+      <div className="relative flex h-full flex-col justify-center px-14">
+        <Tag tone="gold">◆ Apresentação 4 · Perspectiva conceitual</Tag>
+        <h1 className="mt-4 max-w-4xl font-display text-[3.4rem] font-extrabold leading-[0.98] tracking-tight text-cream">
+          Uma cidade.<br />Muitos agentes.<br /><span className="text-gold">Escolhas que se conectam.</span>
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg leading-snug text-cream-dim">
+          Aurora: Quem Decide? pela modelagem de agentes e pela narrativa:
+          da ação individual à agência coletiva e às escolhas entre valores.
+        </p>
+        <div className="mt-6 flex gap-2">
+          <Tag>Agentes estratégicos</Tag><Tag tone="cream">Agentes sociais</Tag><Tag tone="gold">Agentes orientados por valores</Tag>
+        </div>
+        <p className="mt-4 text-xs text-cream-dim">Base: Flavio Soares Correa da Silva · MAC5784 (02/10/2024) e Ricardo Nakamura · Narrativas em jogos digitais (2026).</p>
+      </div>
+      <div className="absolute bottom-4 left-0 right-0 flex justify-between px-8">
+        <span className="hud-label text-gold">Aurora: Quem Decide?</span>
+        <span className="hud-label text-slate">MAC5784 (2026) · Educativo · Não partidário · Fictício</span>
+      </div>
+    </div>
+  )
+}
+
+function V4Visao() {
+  return (
+    <Slide n={2} total={14} kicker="Perspectiva geral · a cidade como sistema">
+      <div className="flex h-full flex-col">
+        <Heading sub="Uma aventura 2D de investigação cívica, não uma disputa eleitoral nem uma aula expositiva.">
+          O jogo começa com uma <span className="text-gold">pergunta cotidiana</span>
+        </Heading>
+        <DialogBox speaker="Joana" avatar={<Joana className="h-full w-full" />}>
+          Tirei meu primeiro título de eleitora. Mas, quando falta um serviço no bairro, quem pode fazer o quê?
+        </DialogBox>
+        <div className="mt-5 grid flex-1 grid-cols-3 gap-4">
+          {[
+            ["Explorar", "Aurora dá forma aos problemas: ruas, serviços públicos e instituições tornam a política concreta."],
+            ["Investigar", "Conversar com moradores e representantes revela necessidades, evidências e limites de cada cargo."],
+            ["Compreender", "Relacionar problema, competência e ação transforma uma reclamação em participação informada."],
+          ].map(([t, d]) => <Card key={t} accent="emerald" className="flex flex-col justify-center"><p className="font-display text-xl font-bold">{t}</p><p className="mt-3 text-base text-cream-dim">{d}</p></Card>)}
+        </div>
+        <p className="mt-5 text-center text-lg text-gold">Não é “quem manda em tudo?”, mas “como uma decisão pública se torna possível?”.</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Agencia() {
+  return (
+    <Slide n={3} total={14} kicker="Aula · agente racional e ambiente">
+      <div className="flex h-full flex-col">
+        <Heading sub="A aula parte da abordagem de agir racionalmente: perceber o ambiente e selecionar ações em função de um objetivo.">
+          Do agente racional à <span className="text-gold">cidade de Aurora</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-[1fr_1.2fr] gap-5">
+          <Card accent="gold" className="flex flex-col justify-center gap-4">
+            <p className="hud-label text-gold">Modelo da aula</p>
+            <Node>Ambiente → sensores → agente</Node>
+            <Node tone="emerald">Agente → atuadores → ambiente</Node>
+            <p className="text-base text-cream-dim">No modelo puramente racional apresentado: um agente e um objetivo. Racionalidade não significa saber tudo nem poder tudo.</p>
+          </Card>
+          <div className="grid gap-3">
+            <Node tone="emerald">Ambiente: cidade, problemas e regras institucionais.</Node>
+            <Node>Percepções: falas, testemunhos e informações do diário.</Node>
+            <Node tone="gold">Ações da jogadora: explorar, conversar e responder às missões.</Node>
+            <Node>Objetivo pedagógico: compreender quem pode agir e por quê.</Node>
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-cream-dim">Aplicação ao design, não descrição de IA autônoma já implementada. Fonte: Silva, 2024, slides 2–4 (AIMA).</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Perspectivas() {
+  return (
+    <Slide n={4} total={14} kicker="Aula · quadro de modelagem de agentes">
+      <div className="flex h-full flex-col">
+        <Heading sub="O quadro da aula diferencia os modelos pelo número de agentes, pelos objetivos e pela ordenação dos valores.">
+          Quatro modelos para <span className="text-gold">pensar a agência</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-4 gap-4">
+          {[
+            ["Puramente racional", "Um agente", "Um objetivo orienta a escolha de ações no ambiente.", "Em Aurora: compreender um problema e sua competência institucional."],
+            ["Estratégico", "Múltiplos agentes", "Um objetivo por agente; as ações dos outros passam a fazer parte do ambiente.", "Proposta: cada gestor considera a resposta dos demais."],
+            ["Social", "Múltiplos agentes", "Múltiplos objetivos; distinguir agentes individuais e agência do conjunto.", "Proposta: ações locais se articulam em um resultado coletivo."],
+            ["Orientado por valores", "Múltiplos agentes", "Múltiplos objetivos e valores parcialmente ordenados.", "Proposta: reconhecer prioridades e alternativas não comparáveis."],
+          ].map(([t, q, d, e], i) => (
+            <Card key={t} accent={i === 3 ? "gold" : "emerald"} className="flex flex-col">
+              <p className="font-display text-xl font-bold">{t}</p><p className="mt-3 text-lg text-gold">{q}</p>
+              <p className="mt-4 text-base text-cream-dim">{d}</p><p className="mt-auto border-t border-line pt-4 text-sm text-cream">{e}</p>
+            </Card>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-cream-dim">Fonte: Silva, 2024, slide 3. Exemplos de Aurora são aplicações propostas; os modelos não são quatro tipos obrigatórios de NPC.</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Estrategicos() {
+  return (
+    <Slide n={5} total={14} kicker="Agentes estratégicos · interdependência">
+      <div className="flex h-full flex-col">
+        <Heading sub="No modelo da aula, o agente mantém um objetivo e percebe um ambiente que inclui outros agentes.">
+          Ninguém resolve a cidade <span className="text-gold">sozinho</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-5">
+          <Card accent="emerald" className="flex flex-col justify-center gap-4">
+            <p className="hud-label text-emerald">Exemplo conceitual · cooperação</p>
+            <p className="font-display text-2xl font-bold">Atendimento regional exige coordenação.</p>
+            <p className="text-base text-cream-dim">Em uma missão hipotética, município e estado precisam combinar responsabilidades e recursos. A iniciativa de um depende do compromisso do outro.</p>
+            <p className="text-sm text-gold">Cooperar pode gerar benefício conjunto; adiar também impõe custos à população.</p>
+          </Card>
+          <div className="grid gap-3">
+            {[
+              ["Objetivo por agente", "Exemplo: viabilizar sua parte do atendimento, respeitando competências e orçamento."],
+              ["Informação", "O que cada parte sabe sobre necessidades e capacidade de execução?"],
+              ["Estratégias", "Propor, negociar, cooperar ou postergar dentro das regras."],
+              ["Consequências", "Entrega do serviço, custo e distribuição dos benefícios."],
+            ].map(([t, d]) => <Card key={t}><p className="font-display text-base font-bold text-gold">{t}</p><p className="mt-1 text-sm text-cream-dim">{d}</p></Card>)}
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-cream-dim">Fonte: Silva, 2024, slides 3 e 5. Aplicação proposta: cooperação não precisa ser uma disputa de soma zero.</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Sociais() {
+  return (
+    <Slide n={6} total={14} kicker="Aula · agentes individuais e agência coletiva">
+      <div className="flex h-full flex-col">
+        <Heading sub="A aula distingue o agente “global” (agency) dos indivíduos (agents), em um contexto multiagente e multiobjetivo.">
+          O coletivo é mais que <span className="text-gold">um NPC sociável</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-3 gap-4">
+          {[
+            ["Indivíduos → coletivo", "Em uma aplicação a Aurora, moradores, equipes e gestores realizam ações locais; a organização dessas ações sustenta o atendimento como resultado coletivo."],
+            ["Múltiplos objetivos", "Acesso, continuidade do serviço e uso de recursos precisam ser considerados em conjunto. O objetivo do coletivo não se resume ao de um personagem isolado."],
+            ["Exemplos da aula", "Swarm intelligence e arquitetura “multi-mini-agent” ilustram a discussão. São referências de organização de agentes, não sistemas já implementados em Aurora."],
+          ].map(([t, d]) => <Card key={t} accent="emerald" className="flex flex-col justify-center"><p className="font-display text-xl font-bold">{t}</p><p className="mt-4 text-base text-cream-dim">{d}</p></Card>)}
+        </div>
+        <div className="mt-4"><DialogBox speaker="Aplicação conceitual a Aurora" color="gold">Estudar como ações individuais se coordenam para produzir um serviço público. Papéis, confiança e diálogo ajudam a representar essa coordenação, mas não esgotam o conceito de agente social.</DialogBox></div>
+        <p className="mt-3 text-sm text-cream-dim">Fonte: Silva, 2024, slides 3 e 6–10. A analogia com serviços públicos é uma proposta de design.</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Valor() {
+  return (
+    <Slide n={7} total={14} kicker="Aula · value scale oriented">
+      <div className="flex h-full flex-col">
+        <Heading sub="Agentes orientados por escala de valores: múltiplos agentes, múltiplos objetivos e valores parcialmente ordenados.">
+          Nem todo valor cabe <span className="text-gold">em uma nota única</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-5">
+          <Card accent="gold" className="flex flex-col justify-center gap-4">
+            <p className="font-display text-2xl font-bold">Ordem parcial ≠ ranking completo</p>
+            <p className="text-base text-cream-dim">Algumas prioridades podem ser estabelecidas sem ordenar todos os pares. Incomparabilidade não significa empate.</p>
+            <Node tone="gold">Exemplo proposto: acesso essencial ≻ conveniência</Node>
+            <Node>Equidade e eficiência: incomparáveis neste exemplo</Node>
+            <p className="text-sm text-gold">Não pressupor pesos fixos nem somar tudo em uma utilidade escalar.</p>
+          </Card>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              ["Alternativa A", "Ampliar o alcance do atendimento existente."],
+              ["Alternativa B", "Priorizar o acesso de uma região desatendida."],
+              ["Conflito de valores", "Maior alcance e maior equidade podem apontar para escolhas distintas."],
+              ["Deliberação", "Explicitar prioridades e buscar informação, sem inventar uma comparação automática."],
+            ].map(([t, d]) => <Card key={t} accent="emerald" className="flex flex-col justify-center"><p className="font-display text-lg font-bold">{t}</p><p className="mt-2 text-sm text-cream-dim">{d}</p></Card>)}
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-cream-dim">Fonte: Silva, 2024, slide 3. Valores públicos são a aplicação proposta a Aurora; leis, competências e orçamento delimitam as opções admissíveis.</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Dilema() {
+  return (
+    <Slide n={8} total={14} kicker="Uma situação · três perspectivas">
+      <div className="flex h-full flex-col">
+        <Heading sub="Exemplo hipotético de evolução: a unidade de saúde do bairro precisa melhorar, mas o recurso é limitado.">
+          O mesmo problema, <span className="text-gold">três perguntas</span>
+        </Heading>
+        <div className="mb-4 flex items-center justify-center gap-4 rounded-md border border-line bg-petrol/40 p-3">
+          <Hospital className="h-16 w-16" />
+          <p className="max-w-3xl text-base text-cream">Ampliar o atendimento agora ou melhorar primeiro o acesso de uma região desatendida? Antes de escolher, confirmar competência, evidências e viabilidade.</p>
+        </div>
+        <div className="grid flex-1 grid-cols-3 gap-4">
+          {[
+            ["Estratégica", "Como os outros agirão?", "Cada gestor considera os compromissos e as respostas dos demais ao buscar viabilizar sua parte do serviço."],
+            ["Social", "Como o conjunto age?", "Articular ações de moradores, profissionais e gestores para atender objetivos coletivos de acesso e continuidade."],
+            ["Orientada por valores", "O que pode ser comparado?", "Explicitar prioridades entre alcance, urgência e equidade; reconhecer o que a ordem de valores ainda não permite decidir."],
+          ].map(([t, q, d]) => <Card key={t} accent="gold"><p className="hud-label text-emerald">{t}</p><p className="mt-3 font-display text-xl font-bold">{q}</p><p className="mt-3 text-base text-cream-dim">{d}</p></Card>)}
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Ciclo() {
+  return (
+    <Slide n={9} total={14} kicker="Aula · narratologia e experiência">
+      <div className="flex h-full flex-col">
+        <Heading sub="Ambientação, personagens, narrador e enredo tornam os conceitos de agência parte de uma experiência situada.">
+          A narrativa dá sentido <span className="text-gold">às decisões</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-4 gap-3">
+          {[
+            ["01", "Ambientação", "Aurora do Brasil, no presente. Praças, serviços e instituições situam os problemas; o cenário pode sugerir histórias (environmental storytelling)."],
+            ["02", "Personagens", "Joana conduz a investigação. Moradores e representantes dão rosto às necessidades, aos objetivos e aos limites de ação."],
+            ["03", "Narrador", "Diálogos e Diário de Cidadania mediam a informação. A interação determina quando e em que ordem a jogadora a encontra."],
+            ["04", "Enredo", "Leitura em três atos: construir a dúvida, confrontar explicações e chegar a uma nova compreensão sobre responsabilidade pública."],
+          ].map(([n, t, d]) => <Card key={n} accent="emerald" className="flex flex-col justify-center"><p className="font-pixel text-lg text-gold">{n}</p><p className="mt-5 font-display text-lg font-bold">{t}</p><p className="mt-3 text-sm text-cream-dim">{d}</p></Card>)}
+        </div>
+        <p className="mt-4 text-center text-base text-gold">Construção → confronto → resolução: problema, revelação e nova situação.</p>
+        <p className="mt-3 text-sm text-cream-dim">Fonte: Nakamura, 2026, slides 3, 5, 9 e 13–15. A leitura de Aurora nesses termos é uma aplicação conceitual, não geração procedural implementada.</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Aprendizagem() {
+  return (
+    <Slide n={10} total={14} kicker="Aula · narrativas no jogo e sobre o jogo">
+      <div className="flex h-full flex-col">
+        <Heading sub="Nakamura distingue os elementos narrativos projetados da compreensão construída por quem joga (sensemaking).">
+          A experiência continua <span className="text-gold">fora de Aurora</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-4">
+          {[
+            ["Narrativas no jogo", "Selecionar problemas, personagens e testemunhos que façam a jogadora encontrar responsabilidades, dependências e conflitos de valores."],
+            ["Narrativas sobre o jogo", "Ao relatar sua investigação, a jogadora reconstrói o sentido da experiência: quem podia agir, o que faltava saber e por que mudou de ideia."],
+            ["Discussão como proposta pedagógica", "Comparar percursos e justificativas em sala amplia a experiência para além do jogo. Isso não exige um modo multiplayer."],
+            ["Horizonte de aprendizagem", "Relacionar problema e competência; explicar a interdependência; reconhecer objetivos coletivos e valores que não têm comparação imediata."],
+          ].map(([t, d], i) => <Card key={t} accent={i % 2 ? "gold" : "emerald"} className="flex flex-col justify-center"><p className="font-display text-xl font-bold">{t}</p><p className="mt-2 text-base text-cream-dim">{d}</p></Card>)}
+        </div>
+        <p className="mt-4 text-center text-base text-gold">“O que a minha investigação me fez compreender — e o que permaneceu em aberto?”</p>
+        <p className="mt-3 text-sm text-cream-dim">Fonte: Nakamura, 2026, slide 11. Discussão em sala e critérios de aprendizagem são propostas para Aurora.</p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Limites() {
+  return (
+    <Slide n={11} total={14} kicker="Princípios · decisões explicáveis">
+      <div className="flex h-full flex-col">
+        <Heading sub="O jogo deve abrir espaço para reflexão, sem converter uma preferência política em resposta automática.">
+          Valor público não é <span className="text-gold">um placar ideológico</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-4">
+          {[
+            ["Competências têm referência", "Atribuições e limites institucionais devem ser conferidos em fontes oficiais, não decididos por preferência."],
+            ["Prioridades exigem argumentos", "Uma ordem parcial pode deixar alternativas incomparáveis. O feedback deve mostrar critérios e lacunas, não fabricar um vencedor numérico."],
+            ["Recompensa não é bem comum", "Estrelas e provas sinalizam progresso no jogo; não medem, por si sós, o valor social de uma política."],
+            ["Transparência antes de automatismo", "Na evolução proposta, decisões dos agentes devem ser compreensíveis, contestáveis e coerentes com as regras."],
+          ].map(([t, d]) => <Card key={t} accent="gold" className="flex flex-col justify-center"><p className="font-display text-xl font-bold">{t}</p><p className="mt-2 text-base text-cream-dim">{d}</p></Card>)}
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Escopo() {
+  return (
+    <Slide n={12} total={14} kicker="Escopo · representação e simulação">
+      <div className="flex h-full flex-col">
+        <Heading sub="As lentes conceituais orientam a leitura do jogo e seu desenvolvimento; não comprovam a existência de IA autônoma.">
+          O que o protótipo representa e <span className="text-gold">o que pode evoluir</span>
+        </Heading>
+        <div className="grid flex-1 grid-cols-2 gap-5">
+          <Card accent="emerald" className="flex flex-col justify-center">
+            <p className="hud-label text-emerald">Base atual · representação</p>
+            <p className="mt-4 font-display text-2xl font-bold">Investigar quem decide</p>
+            <p className="mt-4 text-base leading-relaxed text-cream-dim">Exploração, diálogos roteirizados, missões sobre competências, testemunhos, provas e Diário de Cidadania.</p>
+            <p className="mt-4 text-base text-cream">Os papéis e as falas já permitem discutir interesses, relações e responsabilidades.</p>
+          </Card>
+          <Card accent="gold" className="flex flex-col justify-center">
+            <p className="hud-label text-gold">Horizonte conceitual · proposta</p>
+            <p className="mt-4 font-display text-2xl font-bold">Investigar como decidir</p>
+            <p className="mt-4 text-base leading-relaxed text-cream-dim">Interdependência estratégica, agência coletiva multiobjetivo e escolhas orientadas por valores parcialmente ordenados.</p>
+            <p className="mt-4 text-base text-cream">Validar se isso amplia a compreensão, sem esconder o conteúdo cívico atrás da simulação.</p>
+          </Card>
+        </div>
+        <div className="mt-4 space-y-1 text-xs leading-relaxed text-cream-dim">
+          <p>Silva, Flavio Soares Correa da. MAC5784 – AI in videogames, 02/10/2024. Slides 2–10. Anexos PPTX e PDF da mesma aula; AIMA é a referência de agentes racionais citada no material.</p>
+          <p>Nakamura, Ricardo. Narrativas em jogos digitais. MAC5784, 2026. Slides 3, 5, 9, 11 e 13–15: narratologia, três atos, sensemaking e possibilidades narrativas.</p>
+          <p>As conexões com serviços públicos e os exemplos de decisão são propostas deste projeto, não exemplos extraídos das aulas.</p>
+        </div>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Projetista() {
+  return (
+    <Slide n={13} total={14} kicker="Perspectiva do projetista · escolhas e impactos">
+      <div className="flex h-full flex-col">
+        <Heading sub="O projetista constrói o modelo; o jogador age dentro dele. As escolhas de projeto podem repercutir além da partida.">
+          Projetar o jogo é também <span className="text-gold">considerar seus impactos</span>
+        </Heading>
+        <table className="w-full flex-1 table-fixed border-collapse text-left text-sm leading-snug">
+          <thead>
+            <tr className="border-b border-gold/40 bg-gold/10">
+              <th scope="col" className="px-4 py-3 font-display text-base text-gold">Escolha do projetista</th>
+              <th scope="col" className="px-4 py-3 font-display text-base text-emerald">Impacto esperado no jogador</th>
+              <th scope="col" className="px-4 py-3 font-display text-base text-cream">Contribuição potencial à sociedade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Ambiente e regras", "Representar competências, limites e recursos com fidelidade.", "Distinguir quem executa, legisla e fiscaliza; evitar expectativas de poder ilimitado.", "Favorecer cobranças dirigidas às instituições responsáveis e debate público mais informado."],
+              ["Percepções e ações", "Oferecer testemunhos diversos, evidências e feedback explicativo.", "Cruzar fontes, rever hipóteses e ganhar autonomia para investigar sem medo de errar.", "Estimular escuta e verificação de informações, em vez de reproduzir uma única versão."],
+              ["Objetivos e organização", "Na evolução proposta, modelar interdependência estratégica e agência coletiva.", "Reconhecer que soluções dependem de coordenação, não de um personagem que resolve tudo.", "Valorizar cooperação e participação coletiva sem apagar responsabilidades individuais."],
+              ["Valores e consequências", "Na evolução proposta, explicitar conflitos e valores parcialmente ordenados.", "Justificar prioridades, considerar grupos afetados e reconhecer alternativas incomparáveis.", "Qualificar a discussão sobre equidade e recursos, sem impor uma preferência partidária."],
+            ].map(([title, choice, player, society]) => (
+              <tr key={title} className="border-b border-line bg-petrol/40">
+                <th scope="row" className="px-4 py-3 font-normal">
+                  <span className="mb-1 block font-display text-base font-bold text-gold">{title}</span>
+                  <span className="text-cream-dim">{choice}</span>
+                </th>
+                <td className="px-4 py-3 text-cream-dim">{player}</td>
+                <td className="px-4 py-3 text-cream-dim">{society}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-3 text-sm text-cream-dim">
+          Responsabilidade do projetista: evitar simplificações e vieses, cuidar da acessibilidade e revisar fontes. Validar aprendizagem em playtests; impacto social exige avaliação própria, não decorre automaticamente do jogo.
+        </p>
+        <p className="mt-2 text-xs text-slate">
+          Aplicação proposta a Aurora a partir de Silva (2024) e Nakamura (2026). Impactos são hipóteses de projeto, não resultados comprovados.
+        </p>
+      </div>
+    </Slide>
+  )
+}
+
+function V4Encerramento() {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-ink">
+      <CityPanorama className="absolute inset-0 h-full w-full opacity-35" dusk />
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/80 to-ink/40" />
+      <div className="relative flex h-full flex-col items-center justify-center px-14 text-center">
+        <Tag tone="gold">◆ Síntese · cidadania como agência</Tag>
+        <h1 className="mt-5 max-w-4xl font-display text-[3.2rem] font-extrabold leading-tight">
+          Entender quem decide.<br /><span className="text-emerald">Reconhecer com quem se decide.</span><br /><span className="text-gold">Refletir sobre o que vale decidir.</span>
+        </h1>
+        <p className="mt-6 max-w-2xl text-lg text-cream-dim">A narrativa situa a investigação. A estratégia revela interdependências. A agência coletiva conecta objetivos. Os valores orientam escolhas sem apagar seus conflitos.</p>
+        <div className="mt-6 flex gap-3"><Tag>Interdependência</Tag><Tag tone="cream">Agência coletiva</Tag><Tag tone="gold">Valores parcialmente ordenados</Tag></div>
+      </div>
+      <div className="absolute bottom-4 left-0 right-0 flex justify-between px-8">
+        <span className="hud-label text-gold">Aurora: Quem Decide? · Visão conceitual</span>
+        <span className="hud-label text-slate">Educativo · Não partidário · Personagens fictícios</span>
+      </div>
+    </div>
+  )
+}
+
 /* ──────────────────────────── Deck controller ──────────────────────────── */
 
 const DECKS = {
@@ -1869,25 +2239,44 @@ const DECKS = {
       V3Encerramento,
     ],
   },
+  4: {
+    title: "Visão conceitual e agentes",
+    slides: [
+      V4Cover,
+      V4Visao,
+      V4Agencia,
+      V4Perspectivas,
+      V4Estrategicos,
+      V4Sociais,
+      V4Valor,
+      V4Dilema,
+      V4Ciclo,
+      V4Aprendizagem,
+      V4Limites,
+      V4Escopo,
+      V4Projetista,
+      V4Encerramento,
+    ],
+  },
 } as const
 
-type Version = 1 | 2 | 3
+type Version = 1 | 2 | 3 | 4
 
-/* Segmented control to switch between the two evolutionary presentations */
 function VersionSwitch({ version, onChange }: { version: Version; onChange: (v: Version) => void }) {
   return (
-    <div className="pointer-events-auto absolute left-1/2 top-4 z-20 -translate-x-1/2">
-      <div className="flex items-center gap-1 rounded-md border border-line bg-ink/85 p-1 backdrop-blur-sm">
-        {([1, 2, 3] as Version[]).map((v) => (
+    <div className="pointer-events-auto absolute left-1/2 top-4 z-20 w-[94%] -translate-x-1/2">
+      <div className="grid grid-cols-4 gap-1 rounded-md border border-line bg-ink/85 p-1 backdrop-blur-sm">
+        {([1, 2, 3, 4] as const).map((v) => (
           <button
             key={v}
             onClick={() => onChange(v)}
+            aria-pressed={version === v}
             className={`hud-label rounded-sm px-3 py-1.5 transition ${
               version === v ? "bg-gold text-ink" : "text-cream-dim hover:text-gold"
             }`}
           >
             Apresentação {v}
-            <span className={`ml-2 normal-case ${version === v ? "text-ink/70" : "text-slate"}`}>· {DECKS[v].title}</span>
+            <span className={`mt-1 block normal-case leading-relaxed ${version === v ? "text-ink/70" : "text-slate"}`}>{DECKS[v].title}</span>
           </button>
         ))}
       </div>
@@ -1896,6 +2285,8 @@ function VersionSwitch({ version, onChange }: { version: Version; onChange: (v: 
 }
 
 export default function App() {
+  const stageRef = useRef<HTMLDivElement>(null)
+  const [stageScale, setStageScale] = useState(1)
   const [version, setVersion] = useState<Version>(1)
   const [i, setI] = useState(0)
   const slides = DECKS[version].slides
@@ -1904,6 +2295,14 @@ export default function App() {
   const switchVersion = useCallback((v: Version) => {
     setVersion(v)
     setI(0)
+  }, [])
+
+  useEffect(() => {
+    const stage = stageRef.current
+    if (!stage) return
+    const observer = new ResizeObserver(([entry]) => setStageScale(entry.contentRect.width / 1280))
+    observer.observe(stage)
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
@@ -1920,8 +2319,11 @@ export default function App() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[#06141c] p-4 sm:p-6">
       {/* 16:9 stage */}
-      <div className="relative w-full max-w-[1280px]" style={{ aspectRatio: "16 / 9" }}>
-        <div className="absolute inset-0 overflow-hidden rounded-lg border border-line shadow-[0_24px_80px_-20px_rgba(0,0,0,0.8)]">
+      <div ref={stageRef} className="relative w-full max-w-[1280px]" style={{ aspectRatio: "16 / 9" }}>
+        <div
+          className="absolute left-0 top-0 overflow-hidden rounded-lg border border-line shadow-[0_24px_80px_-20px_rgba(0,0,0,0.8)]"
+          style={{ width: 1280, height: 720, transform: `scale(${stageScale})`, transformOrigin: "top left" }}
+        >
           <Current key={`${version}-${i}`} />
           {/* version selector lives on the first slide of each presentation */}
           {i === 0 && <VersionSwitch version={version} onChange={switchVersion} />}

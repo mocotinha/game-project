@@ -25,7 +25,7 @@ PROBLEMS: tuple[Problem, ...] = (
         id="terreno_saude",
         mission_id="saude_bairro",
         region_key="bairro_saude",
-        x=1560, y=1040,
+        x=1780, y=1400,
         title="Terreno vazio",
         desc_unsolved=(
             "PLACA NO TERRENO: 'Area reservada para uma unidade de saude'. "
@@ -40,7 +40,7 @@ PROBLEMS: tuple[Problem, ...] = (
         id="praca_abandonada",
         mission_id="orcamento_cidade",
         region_key="praca_central",
-        x=880, y=1320,
+        x=800, y=1370,
         title="Praca sem manutencao",
         desc_unsolved=(
             "Lampadas quebradas, bancos danificados e mato alto. Falta definir no orcamento "

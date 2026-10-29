@@ -138,9 +138,10 @@ AREA_SPAWN = {
 }
 
 # Geometria das vias (compartilhada com a renderizacao do chao e com as arvores de borda).
+# Os segmentos vao ate o limite navegavel dos ambientes; barreiras marcam cada fim de via.
 ROAD_W = 80.0
-ROADS_V = {660: (820.0, 2080.0), 1480: (820.0, 2080.0), 2360: (440.0, 2080.0)}  # x -> (y_min, y_max)
-ROADS_H = {900: (200.0, 2900.0), 1560: (200.0, 3060.0)}                          # y -> (x_min, x_max)
+ROADS_V = {660: (200.0, 2140.0), 1480: (200.0, 2140.0), 2360: (340.0, 2180.0)}  # x -> (y_min, y_max)
+ROADS_H = {900: (80.0, 3160.0), 1560: (80.0, 3160.0)}                            # y -> (x_min, x_max)
 
 
 def on_road(x: float, y: float) -> bool:
@@ -188,24 +189,38 @@ def area_bounds(regions: list[Region], area: str, margin: float = 120.0) -> tupl
     return (x0, y0, x1, y1)
 
 
+# Cerca de borda: arvores de 48 px coladas na margem visivel do ambiente.
+HUD_BAR_H = 54.0     # barra de titulo do HUD cobre o topo da tela (em px de mundo)
+FENCE_INSET = 24.0   # arvore centrada no inset fica com a copa encostada na borda
+FENCE_STEP = 30.0    # passo alvo; menor que a copa (33-36 px) -> folhagem sem vaos
+
+
+def _fence_positions(a0: float, a1: float) -> list[float]:
+    """Posicoes uniformemente distribuidas de a0 a a1, incluindo os dois extremos."""
+    span = max(0.0, a1 - a0)
+    n = max(1, round(span / FENCE_STEP))
+    return [a0 + span * i / n for i in range(n + 1)]
+
+
 def _border_trees(regions: list[Region], buildings: list[Building], travels: list[TravelPoint]) -> list[Prop]:
-    """Cerca de arvores na borda de cada ambiente, para a margem nao parecer 'bater no nada'."""
+    """Cerca de arvores na borda de cada ambiente, para a margem nao parecer 'bater no nada'.
+
+    As fileiras vao de canto a canto (sem vao no fim) e a fileira superior fica
+    logo abaixo da barra de titulo do HUD, que cobre o topo da tela.
+    """
     out: list[Prop] = []
     for area in AREA_ORDER:
         x0, y0, x1, y1 = area_bounds(regions, area)
-        inset, step = 46.0, 42.0  # passo < largura visual da arvore -> cerca sem vaos
-        xa, xb, ya, yb = x0 + inset, x1 - inset, y0 + inset, y1 - inset
+        xa, xb = x0 + FENCE_INSET, x1 - FENCE_INSET
+        ya = y0 + FENCE_INSET
+        yb = y1 - HUD_BAR_H - FENCE_INSET - 24.0  # copa (48 px) visivel abaixo do HUD
         pts: list[tuple[float, float]] = []
-        x = xa
-        while x <= xb:
+        for x in _fence_positions(xa, xb):
             pts.append((x, ya))
             pts.append((x, yb))
-            x += step
-        y = ya + step
-        while y < yb:
+        for y in _fence_positions(ya, yb)[1:-1]:
             pts.append((xa, y))
             pts.append((xb, y))
-            y += step
         for tx, ty in pts:
             if on_road(tx, ty):
                 continue  # deixa a via atravessar a cerca ate o ponto de onibus na borda
@@ -214,6 +229,45 @@ def _border_trees(regions: list[Region], buildings: list[Building], travels: lis
             if any((t.x - tx) ** 2 + (t.y - ty) ** 2 < 150 ** 2 for t in travels):
                 continue
             out.append(Prop(f"Arvore de borda {area}", tx, ty, 44, 70, "tree", solid=True))
+    return out
+
+
+def _road_blocks() -> list[Prop]:
+    """Barreiras no fim de cada via (borda do ambiente), para a pista nao 'acabar no nada'.
+
+    O sufixo do nome fixa o ambiente do prop (mesma convencao das arvores de borda),
+    pois alguns fins de via ficam geometricamente mais perto de regioes de outro ambiente.
+    """
+    out: list[Prop] = []
+
+    def block_v(vx: float, y: float, area: str) -> None:
+        for off in (20.0, 60.0):  # duas barreiras lado a lado cobrem a via vertical
+            out.append(Prop(f"Fim da via {area}", vx + off, y, 40, 24, "barrier"))
+
+    def block_h(hy: float, x: float, area: str) -> None:
+        for off in (16.0, 56.0):  # duas barreiras empilhadas cobrem a via horizontal
+            out.append(Prop(f"Fim da via {area}", x, hy + off, 40, 24, "barrier"))
+
+    # Via vertical oeste e central do municipio (extremos sul e norte).
+    block_v(660, 225, "municipio")
+    block_v(660, 2050, "municipio")
+    block_v(1480, 225, "municipio")
+    block_v(1480, 2050, "municipio")
+    # Avenida da capital federal: extremo sul, divisa federal/estadual e extremo norte.
+    block_v(2360, 368, "uniao")
+    block_v(2360, 1528, "uniao")
+    block_v(2360, 1385, "estado")
+    block_v(2360, 2085, "estado")
+    # Via horizontal norte (y=900): extremos e divisas municipio/uniao.
+    block_h(900, 115, "municipio")
+    block_h(900, 2130, "municipio")
+    block_h(900, 2210, "uniao")
+    block_h(900, 3125, "uniao")
+    # Via horizontal sul (y=1560): extremos e divisas municipio/estado.
+    block_h(1560, 115, "municipio")
+    block_h(1560, 2130, "municipio")
+    block_h(1560, 1730, "estado")
+    block_h(1560, 3125, "estado")
     return out
 
 
@@ -259,7 +313,7 @@ def build_city() -> City:
         NPC("Guarda Souza", "Guarda Municipal", 470, 1685, "male_adventurer",
             "Fico de olho na Camara. A seguranca publica tambem e um servico.",
             extra_line="A guarda municipal apoia a ordem e protege bens publicos.", tint=(150, 180, 255)),
-        NPC("Guarda Teles", "Seguranca", 2980, 1085, "male_adventurer",
+        NPC("Guarda Teles", "Seguranca", 2840, 1100, "male_adventurer",
             "Aqui e o Planalto. Mantemos o local seguro e organizado.",
             extra_line="Cada nivel de governo tem sua propria estrutura de seguranca.", tint=(120, 150, 230)),
         NPC("Gari Rita", "Gari", 700, 920, "female_person",
@@ -334,20 +388,36 @@ def build_city() -> City:
         Prop("Arvore", 1320, 1280, 44, 70, "tree"),
         # Bairro da saude
         Prop("Arvore da saude", 1560, 980, 44, 70, "tree"),
-        # Parque (sem predio): arvores e bancos
+        # Parque (sem predio): lago, arvores variadas e bancos
+        Prop("Lago do parque", 1450, 430, 220, 110, "lake"),
         Prop("Arvore", 1180, 420, 44, 70, "tree"),
-        Prop("Arvore", 1620, 440, 44, 70, "tree"),
+        Prop("Pinheiro", 1680, 460, 40, 72, "pine"),
         Prop("Arvore", 1220, 720, 44, 70, "tree"),
-        Prop("Arvore", 1640, 720, 44, 70, "tree"),
-        Prop("Arvore", 1400, 560, 44, 70, "tree"),
+        Prop("Arvore de outono", 1640, 720, 44, 70, "tree_autumn"),
+        Prop("Arvore", 1380, 600, 44, 70, "tree"),
+        Prop("Pinheiro", 1540, 760, 40, 72, "pine"),
+        Prop("Arbusto do parque", 1250, 540, 28, 26, "shrub", solid=False),
+        Prop("Arbusto do parque", 1600, 560, 28, 26, "shrub", solid=False),
         Prop("Banco", 1300, 640, 70, 24, "bench"),
         Prop("Banco", 1520, 640, 70, 24, "bench"),
         Prop("Lampiao", 1160, 640, 18, 60, "lamp"),
-        # Congresso
-        Prop("Arvore do congresso", 2360, 460, 44, 70, "tree"),
+        # Capital do estado: arborizacao das sedes
+        Prop("Arvore", 1860, 1640, 44, 70, "tree"),
+        Prop("Pinheiro", 2540, 1900, 40, 72, "pine"),
+        Prop("Arvore de outono", 3000, 1950, 44, 70, "tree_autumn"),
+        # Interdicao parcial da rodovia estadual (contexto do problema; some ao concluir)
+        Prop("Interdicao da rodovia", 2500, 1588, 40, 20, "barrier", solid=False),
+        Prop("Interdicao da rodovia", 2560, 1606, 40, 20, "barrier", solid=False),
+        # Capital federal
+        Prop("Arvore do congresso", 2250, 480, 44, 70, "tree"),
+        Prop("Pinheiro", 2860, 500, 40, 72, "pine"),
+        Prop("Arvore de outono", 2290, 560, 44, 70, "tree_autumn"),
+        Prop("Arvore", 2800, 1380, 44, 70, "tree"),
+        Prop("Pinheiro", 3100, 1400, 40, 72, "pine"),
     ]
 
     props += _street_decor()
+    props += _road_blocks()
     travels = _travels()
     props += _border_trees(regions, buildings, travels)
     npcs += _protesters(buildings)
@@ -427,13 +497,14 @@ def _street_decor() -> list[Prop]:
                  (2328, 1120), (2452, 1360), (900, 1636), (1900, 876), (1500, 1636)]:
         add("streetlamp", x, y, w=16, h=54, solid=True)
 
-    # Veiculos variados; nas vias horizontais alternam o sentido.
+    # Veiculos variados, todos sobre o asfalto (vias y=900 e y=1560);
+    # nas vias horizontais alternam o sentido.
     cars = [
         ("car_sedan", 780, 936, False), ("car_taxi", 1120, 944, True),
         ("car_bus", 1740, 936, False), ("car_suv", 2200, 944, True),
         ("car_police", 560, 1596, True), ("car_van", 1050, 1604, False),
-        ("car_sports", 1800, 1596, True), ("car_truck", 2360, 1604, False),
-        ("car_amb", 520, 1010, False), ("car_suv", 1420, 1010, True),
+        ("car_sports", 1800, 1596, True), ("car_truck", 2850, 1604, False),
+        ("car_amb", 520, 936, False), ("car_suv", 1340, 944, True),
     ]
     for kind, x, y, flip in cars:
         add(kind, x, y, w=70, h=32, solid=True, flip=flip)
@@ -451,11 +522,13 @@ def _street_decor() -> list[Prop]:
         add(kind, x, y, w=44, h=40)
 
     # Capital federal movimentada: transito intenso na avenida do Congresso (via x2360).
+    # Sprites laterais sao mais largos que a faixa: ficam centrados no asfalto (x=2400);
+    # o onibus, maior que a avenida, circula na via horizontal.
     federal_cars = [
-        ("car_taxi", 2360, 540, False), ("car_bus", 2420, 620, True),
-        ("car_sedan", 2360, 720, False), ("car_suv", 2420, 840, True),
-        ("car_van", 2360, 920, False), ("car_sports", 2300, 660, True),
-        ("car_police", 2300, 820, True),
+        ("car_taxi", 2400, 540, False), ("car_bus", 2700, 936, True),
+        ("car_sedan", 2400, 720, False), ("car_suv", 2400, 780, True),
+        ("car_van", 2400, 1040, False), ("car_sports", 2400, 480, True),
+        ("car_police", 2400, 1180, True),
     ]
     for kind, x, y, flip in federal_cars:
         add(kind, x, y, w=70, h=32, solid=True, flip=flip)
