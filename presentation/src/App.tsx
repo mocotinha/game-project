@@ -1870,12 +1870,12 @@ function V4Agencia() {
   return (
     <Slide n={3} total={14} kicker="Aula · agente racional e ambiente">
       <div className="flex h-full flex-col">
-        <Heading sub="A aula parte da abordagem de agir racionalmente: perceber o ambiente e selecionar ações em função de um objetivo.">
+        <Heading sub="Perceber o ambiente e selecionar ações em função de um objetivo.">
           Do agente racional à <span className="text-gold">cidade de Aurora</span>
         </Heading>
         <div className="grid flex-1 grid-cols-[1fr_1.2fr] gap-5">
           <Card accent="gold" className="flex flex-col justify-center gap-4">
-            <p className="hud-label text-gold">Modelo da aula</p>
+            <p className="hud-label text-gold">Modelo</p>
             <Node>Ambiente → sensores → agente</Node>
             <Node tone="emerald">Agente → atuadores → ambiente</Node>
             <p className="text-base text-cream-dim">No modelo puramente racional apresentado: um agente e um objetivo. Racionalidade não significa saber tudo nem poder tudo.</p>
@@ -1887,7 +1887,7 @@ function V4Agencia() {
             <Node>Objetivo pedagógico: compreender quem pode agir e por quê.</Node>
           </div>
         </div>
-        <p className="mt-4 text-sm text-cream-dim">Aplicação ao design, não descrição de IA autônoma já implementada. Fonte: Silva, 2024, slides 2–4 (AIMA).</p>
+        
       </div>
     </Slide>
   )
@@ -1897,8 +1897,8 @@ function V4Perspectivas() {
   return (
     <Slide n={4} total={14} kicker="Aula · quadro de modelagem de agentes">
       <div className="flex h-full flex-col">
-        <Heading sub="O quadro da aula diferencia os modelos pelo número de agentes, pelos objetivos e pela ordenação dos valores.">
-          Quatro modelos para <span className="text-gold">pensar a agência</span>
+        <Heading sub="O número de agentes, pelos objetivos e pela ordenação dos valores.">
+          Quatro modelos para <span className="text-gold">pensar os agentes</span>
         </Heading>
         <div className="grid flex-1 grid-cols-4 gap-4">
           {[
@@ -1913,7 +1913,7 @@ function V4Perspectivas() {
             </Card>
           ))}
         </div>
-        <p className="mt-4 text-sm text-cream-dim">Fonte: Silva, 2024, slide 3. Exemplos de Aurora são aplicações propostas; os modelos não são quatro tipos obrigatórios de NPC.</p>
+        
       </div>
     </Slide>
   )
@@ -1923,7 +1923,7 @@ function V4Estrategicos() {
   return (
     <Slide n={5} total={14} kicker="Agentes estratégicos · interdependência">
       <div className="flex h-full flex-col">
-        <Heading sub="No modelo da aula, o agente mantém um objetivo e percebe um ambiente que inclui outros agentes.">
+        <Heading sub="O agente mantém um objetivo e percebe um ambiente que inclui outros agentes.">
           Ninguém resolve a cidade <span className="text-gold">sozinho</span>
         </Heading>
         <div className="grid flex-1 grid-cols-2 gap-5">
@@ -1942,7 +1942,7 @@ function V4Estrategicos() {
             ].map(([t, d]) => <Card key={t}><p className="font-display text-base font-bold text-gold">{t}</p><p className="mt-1 text-sm text-cream-dim">{d}</p></Card>)}
           </div>
         </div>
-        <p className="mt-4 text-sm text-cream-dim">Fonte: Silva, 2024, slides 3 e 5. Aplicação proposta: cooperação não precisa ser uma disputa de soma zero.</p>
+        
       </div>
     </Slide>
   )
@@ -1952,18 +1952,18 @@ function V4Sociais() {
   return (
     <Slide n={6} total={14} kicker="Aula · agentes individuais e agência coletiva">
       <div className="flex h-full flex-col">
-        <Heading sub="A aula distingue o agente “global” (agency) dos indivíduos (agents), em um contexto multiagente e multiobjetivo.">
+        <Heading sub="Distinção entre o agente “global” (agency) dos indivíduos (agents), em um contexto multiagente e multiobjetivo.">
           O coletivo é mais que <span className="text-gold">um NPC sociável</span>
         </Heading>
         <div className="grid flex-1 grid-cols-3 gap-4">
           {[
             ["Indivíduos → coletivo", "Em uma aplicação a Aurora, moradores, equipes e gestores realizam ações locais; a organização dessas ações sustenta o atendimento como resultado coletivo."],
             ["Múltiplos objetivos", "Acesso, continuidade do serviço e uso de recursos precisam ser considerados em conjunto. O objetivo do coletivo não se resume ao de um personagem isolado."],
-            ["Exemplos da aula", "Swarm intelligence e arquitetura “multi-mini-agent” ilustram a discussão. São referências de organização de agentes, não sistemas já implementados em Aurora."],
+            ["Múltiplos Agentes", "O jogo não possui colaboração entre os agentes."],
           ].map(([t, d]) => <Card key={t} accent="emerald" className="flex flex-col justify-center"><p className="font-display text-xl font-bold">{t}</p><p className="mt-4 text-base text-cream-dim">{d}</p></Card>)}
         </div>
         <div className="mt-4"><DialogBox speaker="Aplicação conceitual a Aurora" color="gold">Estudar como ações individuais se coordenam para produzir um serviço público. Papéis, confiança e diálogo ajudam a representar essa coordenação, mas não esgotam o conceito de agente social.</DialogBox></div>
-        <p className="mt-3 text-sm text-cream-dim">Fonte: Silva, 2024, slides 3 e 6–10. A analogia com serviços públicos é uma proposta de design.</p>
+        
       </div>
     </Slide>
   )
@@ -1974,7 +1974,7 @@ function V4Valor() {
     <Slide n={7} total={14} kicker="Aula · value scale oriented">
       <div className="flex h-full flex-col">
         <Heading sub="Agentes orientados por escala de valores: múltiplos agentes, múltiplos objetivos e valores parcialmente ordenados.">
-          Nem todo valor cabe <span className="text-gold">em uma nota única</span>
+          Agente de Valor: Nem todo valor cabe <span className="text-gold">em uma nota única</span>
         </Heading>
         <div className="grid flex-1 grid-cols-2 gap-5">
           <Card accent="gold" className="flex flex-col justify-center gap-4">
@@ -1993,7 +1993,7 @@ function V4Valor() {
             ].map(([t, d]) => <Card key={t} accent="emerald" className="flex flex-col justify-center"><p className="font-display text-lg font-bold">{t}</p><p className="mt-2 text-sm text-cream-dim">{d}</p></Card>)}
           </div>
         </div>
-        <p className="mt-4 text-sm text-cream-dim">Fonte: Silva, 2024, slide 3. Valores públicos são a aplicação proposta a Aurora; leis, competências e orçamento delimitam as opções admissíveis.</p>
+        
       </div>
     </Slide>
   )
@@ -2038,7 +2038,7 @@ function V4Ciclo() {
           ].map(([n, t, d]) => <Card key={n} accent="emerald" className="flex flex-col justify-center"><p className="font-pixel text-lg text-gold">{n}</p><p className="mt-5 font-display text-lg font-bold">{t}</p><p className="mt-3 text-sm text-cream-dim">{d}</p></Card>)}
         </div>
         <p className="mt-4 text-center text-base text-gold">Construção → confronto → resolução: problema, revelação e nova situação.</p>
-        <p className="mt-3 text-sm text-cream-dim">Fonte: Nakamura, 2026, slides 3, 5, 9 e 13–15. A leitura de Aurora nesses termos é uma aplicação conceitual, não geração procedural implementada.</p>
+        
       </div>
     </Slide>
   )
@@ -2048,7 +2048,7 @@ function V4Aprendizagem() {
   return (
     <Slide n={10} total={14} kicker="Aula · narrativas no jogo e sobre o jogo">
       <div className="flex h-full flex-col">
-        <Heading sub="Nakamura distingue os elementos narrativos projetados da compreensão construída por quem joga (sensemaking).">
+        <Heading sub="Distingue-se os elementos narrativos projetados da compreensão construída por quem joga.">
           A experiência continua <span className="text-gold">fora de Aurora</span>
         </Heading>
         <div className="grid flex-1 grid-cols-2 gap-4">
@@ -2060,7 +2060,7 @@ function V4Aprendizagem() {
           ].map(([t, d], i) => <Card key={t} accent={i % 2 ? "gold" : "emerald"} className="flex flex-col justify-center"><p className="font-display text-xl font-bold">{t}</p><p className="mt-2 text-base text-cream-dim">{d}</p></Card>)}
         </div>
         <p className="mt-4 text-center text-base text-gold">“O que a minha investigação me fez compreender — e o que permaneceu em aberto?”</p>
-        <p className="mt-3 text-sm text-cream-dim">Fonte: Nakamura, 2026, slide 11. Discussão em sala e critérios de aprendizagem são propostas para Aurora.</p>
+        
       </div>
     </Slide>
   )
@@ -2108,9 +2108,7 @@ function V4Escopo() {
           </Card>
         </div>
         <div className="mt-4 space-y-1 text-xs leading-relaxed text-cream-dim">
-          <p>Silva, Flavio Soares Correa da. MAC5784 – AI in videogames, 02/10/2024. Slides 2–10. Anexos PPTX e PDF da mesma aula; AIMA é a referência de agentes racionais citada no material.</p>
-          <p>Nakamura, Ricardo. Narrativas em jogos digitais. MAC5784, 2026. Slides 3, 5, 9, 11 e 13–15: narratologia, três atos, sensemaking e possibilidades narrativas.</p>
-          <p>As conexões com serviços públicos e os exemplos de decisão são propostas deste projeto, não exemplos extraídos das aulas.</p>
+          
         </div>
       </div>
     </Slide>
@@ -2153,9 +2151,7 @@ function V4Projetista() {
         <p className="mt-3 text-sm text-cream-dim">
           Responsabilidade do projetista: evitar simplificações e vieses, cuidar da acessibilidade e revisar fontes. Validar aprendizagem em playtests; impacto social exige avaliação própria, não decorre automaticamente do jogo.
         </p>
-        <p className="mt-2 text-xs text-slate">
-          Aplicação proposta a Aurora a partir de Silva (2024) e Nakamura (2026). Impactos são hipóteses de projeto, não resultados comprovados.
-        </p>
+      
       </div>
     </Slide>
   )

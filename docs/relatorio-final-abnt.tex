@@ -1,0 +1,133 @@
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[a4paper,margin=1.8cm]{geometry}
+\usepackage{times}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{balance}
+\usepackage[backend=biber,style=abnt]{biblatex}
+\usepackage{hyperref}
+
+\addbibresource{relatorio-final-abnt.bib}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black}
+\setlength{\columnsep}{0.7cm}
+\setlength{\parindent}{1.1em}
+\setlength{\parskip}{0.15em}
+\setlist{nosep,leftmargin=1.2em}
+
+\title{\vspace{-1.2em}\textbf{Aurora: Quem Decide?}\\[0.2em]
+\large Relat\'orio Final de um \emph{Serious Game} 2D de Educa\c{c}\~ao Pol\'itica e Cidadania}
+\author{Projeto Acad\^emico --- MAC5784: Intelig\^encia Artificial em Jogos de Computador\\
+Universidade de S\~ao Paulo (USP) --- 2026}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent \emph{Aurora: Quem Decide?} \'e um \emph{serious game} 2D \emph{top-down},
+desenvolvido em Python com a biblioteca Arcade, cujo prop\'osito \'e ensinar de
+forma interativa as atribui\c{c}\~oes e os limites dos cargos eletivos brasileiros
+e a divis\~ao de compet\^encias entre os n\'iveis de governo. Este relat\'orio
+apresenta os objetivos, o processo de desenvolvimento e os resultados obtidos
+com o prot\'otipo (\emph{vertical slice}) e com a aplica\c{c}\~ao de apresenta\c{c}\~ao
+que documenta as decis\~oes de projeto. O conte\'udo \'e educativo, fict\'icio e
+n\~ao partid\'ario.
+\end{abstract}
+
+\section{Objetivos}
+
+O objetivo pedag\'ogico central \'e ensinar, por meio da jogabilidade, \emph{quem
+decide o qu\^e} na estrutura pol\'itico-administrativa brasileira --- as atribui\c{c}\~oes
+de vereador, prefeito, deputado estadual, governador, deputado federal, senador e
+presidente ---, abordando ainda or\c{c}amento p\'ublico, fiscaliza\c{c}\~ao, participa\c{c}\~ao
+social e coopera\c{c}\~ao entre os n\'iveis de governo. Ao final de cada cap\'itulo, o
+jogador deve ser capaz de: (i) \textbf{relacionar} um problema ao n\'ivel de governo
+respons\'avel; (ii) \textbf{explicar} ao menos uma atribui\c{c}\~ao do cargo envolvido;
+(iii) \textbf{distinguir} os pap\'eis do Legislativo e do Executivo; e (iv)
+reconhecer que pol\'iticas p\'ublicas envolvem escolhas, limites e consequ\^encias.
+
+O projeto se alinha \`a Agenda 2030 da ONU, dialogando sobretudo com o
+\textbf{ODS~16} (Paz, Justi\c{c}a e Institui\c{c}\~oes Eficazes) e o \textbf{ODS~4}
+(Educa\c{c}\~ao de Qualidade), al\'em dos ODS~11 e~17, partindo da premissa de que
+cidad\~aos que compreendem a divis\~ao de compet\^encias fiscalizam melhor e participam
+mais~\cite{ods16,ods4,agenda2030}. Princ\'ipios editoriais norteiam o conte\'udo:
+personagens e falas fict\'icios, aus\^encia de partido ou pedido de voto, e revis\~ao
+com fontes oficiais~\cite{constituicao,camara,senado}.
+
+\section{Desenvolvimento}
+
+\paragraph{Fundamenta\c{c}\~ao de \emph{game design}.} O design partiu do arcabou\c{c}o
+\textbf{MDA} (Mec\^anicas $\rightarrow$ Din\^amicas $\rightarrow$ Est\'eticas), que
+estrutura o jogo de baixo para cima enquanto o jogador o experimenta de cima para
+baixo~\cite{mda}. As defini\c{c}\~oes de jogo, divers\~ao e experi\^encia, bem como as
+``lentes'' de projeto, seguiram Schell~\cite{schell}, e as emo\c{c}\~oes-alvo foram
+mapeadas pelas \emph{Four Fun Keys} de Lazzaro --- com \^enfase no \emph{Serious Fun},
+a chave mais alinhada a jogos educativos~\cite{lazzaro}. A justificativa do
+``jogo como prot\'otipo'' e as decis\~oes de \emph{game feel} apoiaram-se em
+Fullerton~\cite{fullerton}, e o prop\'osito educativo foi fundamentado na literatura
+de \emph{serious games}, que trata educa\c{c}\~ao e entretenimento como complementares,
+tecendo a mensagem na experi\^encia em vez de preg\'a-la~\cite{seriousgames}.
+
+\paragraph{Narrativa e personagens.} A constru\c{c}\~ao narrativa seguiu Nakamura,
+distinguindo a narrativa \emph{no} jogo da que se forma \emph{ao redor} dele, e os
+quatro modos de interatividade narrativa de Zimmerman~\cite{nakamura,zimmerman}.
+A protagonista, Joana, foi projetada como \emph{avatar habit\'avel} e os NPCs como
+pap\'eis sociais, conforme Isbister~\cite{isbister}. A quarta apresenta\c{c}\~ao conecta
+a perspectiva do projetista a agentes racionais, estrat\'egicos, sociais e orientados
+por valores parcialmente ordenados, com base na aula de modelagem de agentes de
+Silva~\cite{silva}.
+
+\paragraph{Implementa\c{c}\~ao t\'ecnica.} O prot\'otipo foi desenvolvido em
+\textbf{Python~3} com a biblioteca \textbf{Arcade}~\cite{arcade} (janela,
+renderiza\c{c}\~ao, \emph{sprites}, entrada e \'audio) e testes automatizados com
+\textbf{pytest}~\cite{pytest}. O c\'odigo (\texttt{src/}) \'e modular: \texttt{config},
+\texttt{assets}/\texttt{modular}/\texttt{citytiles}, \texttt{audio}, \texttt{rules},
+\texttt{save\_manager}, \texttt{ui}, al\'em de \texttt{content/} (miss\~oes, cargos,
+problemas, \emph{side quests}), \texttt{views/} (telas) e \texttt{world/} (interiores).
+O progresso \'e persistido em JSON. Os \emph{assets} visuais utilizam pacotes
+Kenney sob licen\c{c}a CC0~\cite{kenney,cc0}, e o jogo funciona sem \emph{assets}
+externos de \'audio.
+
+\paragraph{Mec\^anicas.} O jogo oferece movimenta\c{c}\~ao \emph{top-down}
+(setas/\texttt{WASD}), di\'alogos e miss\~oes com NPCs que apresentam um problema e uma
+pergunta de m\'ultipla escolha sobre o n\'ivel de governo respons\'avel, \emph{side
+quests} com moradores, um \emph{Di\'ario de Cidadania} consult\'avel e um sistema de
+provas (problema, testemunho e lei). A progress\~ao acompanha os tr\^es n\'iveis de
+governo: Munic\'ipio, Estado e Uni\~ao.
+
+\paragraph{Documenta\c{c}\~ao e apresenta\c{c}\~ao.} Paralelamente ao jogo, uma aplica\c{c}\~ao
+web (React + Vite + Tailwind) re\'une quatro apresenta\c{c}\~oes --- prot\'otipo,
+\emph{game design}, narrativa/personagens e vis\~ao conceitual/agentes --- que
+explicitam as fontes, distinguem os conceitos das aulas de suas aplica\c{c}\~oes a
+Aurora e identificam as propostas de evolu\c{c}\~ao ainda n\~ao implementadas.
+
+\section{Resultados}
+
+Entregou-se um \emph{vertical slice} funcional e execut\'avel, com a pra\c{c}a de
+Aurora do Brasil, movimenta\c{c}\~ao \emph{top-down}, personagens fict\'icios, sistema de
+di\'alogos e uma miss\~ao completa sobre a responsabilidade municipal por uma unidade
+de sa\'ude, al\'em de \emph{side quests}, Di\'ario de Cidadania, salvamento em m\'ultiplos
+\emph{slots} e configura\c{c}\~oes. A arquitetura modular separou conte\'udo educativo
+(dados) da l\'ogica de jogo, facilitando a expans\~ao para as etapas estadual e federal.
+As regras das miss\~oes s\~ao cobertas por testes automatizados, garantindo a
+consist\^encia entre problema, n\'ivel de governo e resposta correta.
+
+A aplica\c{c}\~ao de apresenta\c{c}\~ao consolidou a rastreabilidade entre teoria e projeto,
+vinculando cada decis\~ao de design a um referencial acad\^emico e aos impactos
+esperados no jogador --- tratados explicitamente como hip\'oteses a validar, com
+cuidados de acessibilidade, fidelidade c\'ivica e preven\c{c}\~ao de vieses. Como
+trabalhos futuros, prop\~oe-se completar as etapas estadual e federal, conduzir
+\emph{playtesting} formal segundo as cinco perguntas de Schell~\cite{schell} e
+explicitar, na jogabilidade, conflitos de valores parcialmente ordenados conforme a
+modelagem de agentes~\cite{silva}. O impacto de aprendizagem e social permanece
+condicionado a avalia\c{c}\~ao emp\'irica pr\'opria, n\~ao decorrendo automaticamente do jogo.
+
+\balance
+\printbibliography[title={Refer\^encias}]
+
+\end{document}
